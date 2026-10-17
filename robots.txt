@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://ВАШ-ЛОГІН.github.io/EduNova/sitemap.xml
+Sitemap: https://okhrymenkodiana.github.io/EduNova/sitemap.xml
