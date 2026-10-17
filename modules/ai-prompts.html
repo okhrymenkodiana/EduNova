@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Нейронна Галактика · Конструктор AI-промптів · EduNova</title>
+  <meta name="theme-color" content="#050b14">
+  <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
+
+  <!-- Шрифт Inter, моноширинний шрифт для «терміналу» та іконки FontAwesome -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <style>
+    /* ============================================================
+       EDUNOVA DESIGN SYSTEM — ЗМІННІ ТЕМИ
+       ============================================================ */
+    :root {
+      --space: #050b14;
+      --cyan: #00ffff;
+      --purple: #b14bf4;
+      --emerald: #00ff80;
+      --text: #F3F4F6;
+      --text-secondary: #D1D5DB;
+      --muted: #8d97b5;
+      --glass: rgba(15, 23, 42, 0.5);
+      --glass-input: rgba(10, 15, 30, 0.65);
+      --border: rgba(255, 255, 255, 0.1);
+      --radius: 16px;
+      --shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', 'Roboto', sans-serif;
+      color: var(--text);
+      min-height: 100vh;
+      padding: 28px 22px 40px;
+      line-height: 1.5;
+      background:
+        radial-gradient(900px 600px at 10% 0%, rgba(177, 75, 244, 0.16), transparent 60%),
+        radial-gradient(900px 600px at 95% 100%, rgba(0, 255, 255, 0.12), transparent 60%),
+        radial-gradient(500px 400px at 60% 40%, rgba(0, 255, 128, 0.06), transparent 70%),
+        var(--space);
+      background-attachment: fixed;
+    }
+
+    /* Фон із зірками (Canvas) */
+    #stars { position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: 0; pointer-events: none; }
+
+    .container { position: relative; z-index: 1; max-width: 1280px; margin: 0 auto; }
+
+    /* ===== Навігація: Кнопка «Назад до Хабу» ===== */
+    .top-nav {
+      display: flex;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+    .back-hub {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 18px;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      text-decoration: none;
+      background: var(--glass);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      box-shadow: var(--shadow);
+      transition: all 0.3s ease;
+    }
+    .back-hub i {
+      color: var(--cyan);
+      transition: transform 0.3s ease;
+    }
+    .back-hub:hover, .back-hub:focus-visible {
+      border-color: var(--cyan);
+      color: #ffffff;
+      box-shadow: 0 0 20px rgba(0, 255, 255, 0.38), var(--shadow);
+      transform: translateY(-2px);
+      outline: none;
+    }
+    .back-hub:hover i {
+      transform: translateX(-4px);
+    }
+
+    /* ============================================================
+       ШАПКА
+       ============================================================ */
+    header { margin-bottom: 26px; }
+    .brand {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-size: 12px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase;
+      color: var(--cyan);
+      background: rgba(0, 255, 255, 0.08);
+      border: 1px solid rgba(0, 255, 255, 0.28);
+      backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+      padding: 6px 14px; border-radius: 999px; margin-bottom: 12px;
+    }
+    h1 {
+      font-size: clamp(28px, 4.2vw, 42px); font-weight: 800; letter-spacing: -0.02em; line-height: 1.1;
+      color: #ffffff;
+      text-shadow: 0 0 22px rgba(177, 75, 244, 0.55), 0 0 42px rgba(0, 255, 255, 0.3);
+    }
+    .subtitle { color: var(--text-secondary); margin-top: 8px; max-width: 640px; }
+
+    /* ============================================================
+       МАКЕТ
+       ============================================================ */
+    .layout { display: grid; grid-template-columns: minmax(340px, 0.85fr) 1.15fr; gap: 24px; align-items: start; }
+
+    .glass {
+      background: var(--glass);
+      backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--border); border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    /* ===== Ліва колонка: параметри ===== */
+    .params { padding: 26px; }
+    .panel-title {
+      font-size: 17px; font-weight: 600; color: #ffffff;
+      text-shadow: 0 0 14px rgba(177, 75, 244, 0.45);
+      display: flex; align-items: center; gap: 10px; margin-bottom: 22px;
+    }
+    .panel-title i { color: var(--purple); text-shadow: 0 0 14px var(--purple); }
+
+    .field { margin-bottom: 18px; }
+    .field label {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 11.5px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase;
+      color: var(--text-secondary); margin-bottom: 8px;
+    }
+    .field label i { color: var(--cyan); width: 14px; text-align: center; }
+
+    select, textarea.topic {
+      width: 100%; font-family: inherit; font-size: 15px; color: var(--text);
+      background-color: var(--glass-input); border: 1px solid rgba(255, 255, 255, 0.16); border-radius: 14px; padding: 12px 15px; outline: none;
+      transition: border-color .25s ease, box-shadow .25s ease, background-color .25s ease;
+    }
+    select {
+      appearance: none; -webkit-appearance: none; cursor: pointer; padding-right: 42px;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2300ffff' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 15px center;
+    }
+    select option { background: #0a1122; color: var(--text); }
+    textarea.topic { resize: vertical; min-height: 92px; line-height: 1.55; }
+    textarea.topic::placeholder { color: var(--muted); }
+    select:hover, textarea.topic:hover { border-color: rgba(177, 75, 244, 0.55); }
+    select:focus, textarea.topic:focus {
+      border-color: var(--purple);
+      box-shadow: 0 0 0 3px rgba(177, 75, 244, 0.22), 0 0 22px rgba(177, 75, 244, 0.3);
+    }
+
+    .hint { font-size: 12px; color: #fbbf24; margin-top: 7px; display: flex; align-items: center; gap: 7px; opacity: 0; transform: translateY(-3px); transition: all .3s ease; height: 0; overflow: hidden; }
+    .hint.show { opacity: 1; transform: none; height: 18px; }
+
+    /* Перемикач «Детальний / Короткий» */
+    .segment { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; padding: 5px; border-radius: 14px; background: var(--glass-input); border: 1px solid rgba(255, 255, 255, 0.14); }
+    .segment button {
+      font-family: inherit; font-size: 14px; font-weight: 600; color: var(--text-secondary); cursor: pointer;
+      background: transparent; border: none; border-radius: 10px; padding: 9px 10px;
+      transition: all .25s ease;
+    }
+    .segment button:hover { color: #ffffff; }
+    .segment button.active {
+      color: #050b14;
+      background: linear-gradient(120deg, var(--cyan), var(--purple));
+      box-shadow: 0 0 18px rgba(0, 255, 255, 0.35);
+    }
+    .segment button:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+
+    .btn-reset {
+      font-family: inherit; font-size: 14px; font-weight: 500; color: var(--text-secondary); cursor: pointer;
+      background: rgba(10, 15, 30, 0.6); border: 1px solid rgba(255, 255, 255, 0.16); border-radius: 12px; padding: 10px 16px; margin-top: 4px;
+      display: inline-flex; align-items: center; gap: 8px; transition: all .25s ease;
+    }
+    .btn-reset:hover { color: #ffffff; border-color: var(--cyan); box-shadow: 0 0 16px rgba(0, 255, 255, 0.3); }
+
+    /* ===== Права колонка: термінал ===== */
+    .terminal { padding: 0; overflow: hidden; position: sticky; top: 20px; }
+    .term-bar {
+      display: flex; align-items: center; gap: 14px; padding: 14px 20px;
+      background: rgba(5, 11, 20, 0.65); border-bottom: 1px solid var(--border);
+    }
+    .dots { display: flex; gap: 7px; }
+    .dots span { width: 12px; height: 12px; border-radius: 50%; }
+    .dots span:nth-child(1) { background: #ff5f87; box-shadow: 0 0 8px #ff5f87; }
+    .dots span:nth-child(2) { background: #fbbf24; box-shadow: 0 0 8px #fbbf24; }
+    .dots span:nth-child(3) { background: var(--emerald); box-shadow: 0 0 8px var(--emerald); }
+    .term-name { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--text-secondary); flex: 1; }
+    .term-name b { color: var(--cyan); font-weight: 500; }
+    .term-meta { font-size: 12px; color: var(--text-secondary); font-variant-numeric: tabular-nums; }
+
+    .term-body { padding: 22px; }
+    #result {
+      width: 100%; min-height: 440px; resize: vertical;
+      font-family: 'JetBrains Mono', 'Inter', monospace; font-size: 14.5px; line-height: 1.75; color: var(--text);
+      background: var(--glass-input); border: 1px solid rgba(0, 255, 255, 0.22); border-radius: 16px; padding: 20px; outline: none;
+      transition: border-color .3s ease, box-shadow .3s ease;
+    }
+    #result:focus { border-color: var(--cyan); box-shadow: 0 0 0 3px rgba(0, 255, 255, 0.18), 0 0 24px rgba(0, 255, 255, 0.25); }
+    #result.flash { animation: flash .6s ease; }
+    @keyframes flash {
+      0%   { border-color: var(--purple); box-shadow: 0 0 28px rgba(177, 75, 244, 0.55); }
+      100% { border-color: rgba(0, 255, 255, 0.22); box-shadow: none; }
+    }
+    .term-note { font-size: 12.5px; color: var(--text-secondary); margin: 10px 2px 18px; display: flex; align-items: center; gap: 8px; }
+    .term-note i { color: var(--cyan); }
+
+    /* Кнопка копіювання */
+    .btn-copy {
+      width: 100%; font-family: inherit; font-size: 17px; font-weight: 700; letter-spacing: .02em; color: #050b14; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 12px;
+      border: none; border-radius: 16px; padding: 18px 24px;
+      background: linear-gradient(110deg, var(--cyan), var(--purple) 50%, var(--emerald));
+      background-size: 200% 100%;
+      box-shadow: 0 0 28px rgba(0, 255, 255, 0.4), 0 0 48px rgba(177, 75, 244, 0.3);
+      transition: transform .2s ease, box-shadow .3s ease, background-position .6s ease;
+    }
+    .btn-copy:hover { transform: translateY(-2px); background-position: 100% 0; box-shadow: 0 0 42px rgba(0, 255, 255, 0.6), 0 0 60px rgba(177, 75, 244, 0.45); }
+    .btn-copy:active { transform: scale(.98); }
+    .btn-copy:focus-visible { outline: 3px solid rgba(0, 255, 255, 0.6); outline-offset: 3px; }
+    .btn-copy.copied { background: linear-gradient(110deg, var(--emerald), var(--cyan)); color: #050b14; box-shadow: 0 0 34px rgba(0, 255, 128, 0.6); }
+
+    /* ============================================================
+       АДАПТИВНІСТЬ
+       ============================================================ */
+    @media (max-width: 960px) {
+      .layout { grid-template-columns: 1fr; }
+      .terminal { position: static; }
+      #result { min-height: 340px; }
+    }
+    @media (max-width: 480px) {
+      body { padding: 18px 12px 30px; }
+      .params, .term-body { padding: 18px; }
+      .term-meta { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="stars" aria-hidden="true"></canvas>
+
+  <div class="container">
+
+    <!-- Навігація назад до Хабу -->
+    <nav class="top-nav" aria-label="Навігація платформи">
+      <a class="back-hub" href="../index.html">
+        <i class="fa-solid fa-arrow-left"></i>
+        <span>← Назад до Хабу</span>
+      </a>
+    </nav>
+
+    <header>
+      <div class="brand"><i class="fa-solid fa-brain"></i> EduNova · AI-інструменти</div>
+      <h1>Нейронна Галактика</h1>
+      <p class="subtitle">Конструктор AI-промптів: оберіть параметри — і отримайте готовий детальний запит для ChatGPT, Claude чи будь-якої іншої нейромережі.</p>
+    </header>
+
+    <main class="layout">
+
+      <!-- ===== Ліва колонка: параметри ===== -->
+      <section class="glass params" aria-labelledby="paramsTitle">
+        <h2 class="panel-title" id="paramsTitle"><i class="fa-solid fa-sliders"></i> Параметри нейромережі</h2>
+
+        <div class="field">
+          <label for="subject"><i class="fa-solid fa-book-open"></i> Предмет</label>
+          <select id="subject"></select>
+        </div>
+
+        <div class="field">
+          <label for="audience"><i class="fa-solid fa-users"></i> Цільова аудиторія (клас)</label>
+          <select id="audience"></select>
+        </div>
+
+        <div class="field">
+          <label for="role"><i class="fa-solid fa-user-astronaut"></i> Роль AI</label>
+          <select id="role"></select>
+        </div>
+
+        <div class="field">
+          <label for="task"><i class="fa-solid fa-list-check"></i> Тип завдання</label>
+          <select id="task"></select>
+        </div>
+
+        <div class="field">
+          <label for="format"><i class="fa-solid fa-table-list"></i> Формат виводу</label>
+          <select id="format"></select>
+        </div>
+
+        <div class="field">
+          <label for="topic"><i class="fa-solid fa-satellite"></i> Тема / додаткові умови</label>
+          <textarea class="topic" id="topic" placeholder="Наприклад: «Цикли в Python» або «Дроби». Можна додати побажання: без домашнього завдання, з використанням відео…"></textarea>
+          <div class="hint" id="topicHint"><i class="fa-solid fa-triangle-exclamation"></i> Вкажіть тему — так промпт буде точнішим</div>
+        </div>
+
+        <div class="field">
+          <label><i class="fa-solid fa-layer-group"></i> Деталізація промпту</label>
+          <div class="segment" role="group" aria-label="Деталізація">
+            <button type="button" data-mode="detailed" class="active" aria-pressed="true">Детальний</button>
+            <button type="button" data-mode="compact" aria-pressed="false">Короткий</button>
+          </div>
+        </div>
+
+        <button type="button" class="btn-reset" id="resetBtn"><i class="fa-solid fa-rotate-left"></i> Скинути параметри</button>
+      </section>
+
+      <!-- ===== Права колонка: результат ===== -->
+      <section class="glass terminal" aria-labelledby="resultTitle">
+        <div class="term-bar">
+          <div class="dots" aria-hidden="true"><span></span><span></span><span></span></div>
+          <div class="term-name" id="resultTitle"><b>edunova</b>:~$ prompt.txt</div>
+          <div class="term-meta" id="meta">0 слів · 0 симв.</div>
+        </div>
+        <div class="term-body">
+          <textarea id="result" spellcheck="false" aria-label="Згенерований промпт"></textarea>
+          <p class="term-note"><i class="fa-regular fa-pen-to-square"></i> Текст можна правити вручну; будь-яка зміна параметрів сформує промпт заново.</p>
+          <button type="button" class="btn-copy" id="copyBtn"><i class="fa-regular fa-copy"></i><span>Скопіювати Промпт</span></button>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <script>
+    /* ============================================================
+       ДАНІ: варіанти списків і фрази для шаблону
+       Щоб додати новий пункт — достатньо додати рядок у відповідний масив.
+       label — підпис у списку, text — фраза, що підставляється у промпт.
+       ============================================================ */
+    const DATA = {
+      subject: [
+        { id: 'inf',  label: 'Інформатика',               text: 'із предмета «Інформатика»' },
+        { id: 'math', label: 'Математика',                text: 'із предмета «Математика»' },
+        { id: 'hist', label: 'Історія України',           text: 'із предмета «Історія України»' },
+        { id: 'eng',  label: 'Англійська мова',           text: 'з англійської мови (методика CEFR)' },
+        { id: 'ukr',  label: 'Українська мова та література', text: 'з української мови та літератури' },
+        { id: 'phys', label: 'Фізика',                    text: 'із предмета «Фізика»' },
+        { id: 'bio',  label: 'Біологія',                  text: 'із предмета «Біологія»' },
+        { id: 'chem', label: 'Хімія',                     text: 'із предмета «Хімія»' },
+        { id: 'geo',  label: 'Географія',                 text: 'із предмета «Географія»' },
+        { id: 'uni',  label: 'Універсальний',             text: 'зі шкільних предметів загалом (міждисциплінарний підхід)' }
+      ],
+      audience: [
+        { id: 'p14',  label: '1–4 класи',   text: 'учні 1–4 класів (6–10 років): проста мова, короткі речення, багато наочності' },
+        { id: 'g56',  label: '5–6 класи',   text: 'учні 5–6 класів (10–12 років): зрозумілі приклади з життя та елементи гри' },
+        { id: 'g79',  label: '7–9 класи',   text: 'учні 7–9 класів (12–15 років): поступове ускладнення та зв\'язок із реальними ситуаціями' },
+        { id: 'g1011',label: '10–11 класи', text: 'учні 10–11 класів (15–17 років): глибший аналіз, підготовка до ЗНО/НМТ та до свідомого вибору професії' },
+        { id: 'teach',label: 'Вчителі',     text: 'вчителі-колеги, яким потрібен готовий до використання методичний матеріал' }
+      ],
+      role: [
+        { id: 'method',  label: 'Досвідчений методист',     text: 'досвідчений методист із багаторічним стажем розробки навчальних матеріалів' },
+        { id: 'animator',label: 'Креативний аніматор',      text: 'креативний аніматор освітніх активностей, який уміє зацікавити будь-яку аудиторію' },
+        { id: 'examiner',label: 'Суворий екзаменатор',      text: 'суворий, але справедливий екзаменатор, який цінує точність формулювань' },
+        { id: 'mentor',  label: 'Добрий наставник',         text: 'доброзичливий наставник, який терпляче пояснює та підтримує' },
+        { id: 'popular', label: 'Науковий популяризатор',   text: 'науковий популяризатор, який пояснює складне просто та захопливо' }
+      ],
+      task: [
+        { id: 'lesson', label: 'План уроку', verb: 'Створи детальний план уроку', short: 'план уроку',
+          reqs: ['Вкажи мету, очікувані результати навчання та тривалість кожного етапу (урок — 45 хвилин)',
+                 'Передбач етапи: актуалізація знань, пояснення нового матеріалу, закріплення, рефлексія',
+                 'Запропонуй різні види діяльності для учнів із різним рівнем підготовки'] },
+        { id: 'tests', label: 'Тестові запитання', verb: 'Створи тестові запитання', short: 'тестові запитання',
+          reqs: ['Підготуй 10 запитань із чотирма варіантами відповіді (A–D), лише одна відповідь правильна',
+                 'Розташуй запитання від простих до складних',
+                 'Наприкінці додай ключ відповідей із коротким поясненням кожної'] },
+        { id: 'practical', label: 'Практична робота', verb: 'Підготуй практичну роботу', short: 'практична робота',
+          reqs: ['Сформулюй чітку мету та перелік необхідних матеріалів чи інструментів',
+                 'Опиши покрокові інструкції, зрозумілі без додаткових пояснень вчителя',
+                 'Додай критерії оцінювання в балах і завдання підвищеної складності'] },
+        { id: 'game', label: 'Ігрова вправа', verb: 'Придумай ігрову вправу', short: 'ігрова вправа',
+          reqs: ['Опиши правила, необхідне обладнання та орієнтовну тривалість (10–15 хвилин)',
+                 'Залучи до активності всіх учнів класу',
+                 'Запропонуй, як провести вправу онлайн або без гаджетів'] },
+        { id: 'explain', label: 'Пояснення складної теми', verb: 'Поясни складну тему', short: 'пояснення теми',
+          reqs: ['Використовуй простішу мову та життєві аналогії',
+                 'Рухайся від простого до складного, не перевантажуючи зайвими термінами',
+                 'Наведи 2–3 приклади та наприкінці додай кілька запитань для самоперевірки'] }
+      ],
+      format: [
+        { id: 'table',   label: 'Таблиця',               text: 'таблиця у форматі Markdown' },
+        { id: 'bullets', label: 'Маркований список',     text: 'маркований список зі стислими пунктами' },
+        { id: 'headings',label: 'Текст із підзаголовками', text: 'структурований текст із чіткими підзаголовками' },
+        { id: 'json',    label: 'JSON',                  text: 'валідний JSON без жодного додаткового тексту поза структурою' }
+      ]
+    };
+
+    const STORE_KEY = 'neuralGalaxy_v1';
+    const TOPIC_PLACEHOLDER = '[вкажіть тему]';
+
+    /* ============================================================
+       DOM
+       ============================================================ */
+    const $ = id => document.getElementById(id);
+    const selects = { subject: $('subject'), audience: $('audience'), role: $('role'), task: $('task'), format: $('format') };
+    const topicEl = $('topic'), resultEl = $('result'), metaEl = $('meta'), hintEl = $('topicHint');
+    const copyBtn = $('copyBtn'), resetBtn = $('resetBtn');
+    const modeBtns = document.querySelectorAll('.segment button');
+    let mode = 'detailed';
+
+    /* ============================================================
+       ПОБУДОВА ПРОМПТУ
+       ============================================================ */
+
+    // Знаходить обраний варіант за значенням select
+    const pick = key => DATA[key].find(o => o.id === selects[key].value);
+
+    // Перша літера — мала (щоб фрази гладко вставлялися в середину речення)
+    const lcFirst = s => s.charAt(0).toLowerCase() + s.slice(1);
+
+    function buildPrompt() {
+      const subject = pick('subject'), audience = pick('audience'), role = pick('role');
+      const task = pick('task'), format = pick('format');
+      const topic = topicEl.value.trim() || TOPIC_PLACEHOLDER;
+
+      /* --- Короткий режим: один абзац за базовим шаблоном --- */
+      if (mode === 'compact') {
+        return `Дій як ${role.text}. Ти експерт ${subject.text}. ` +
+               `Твоє завдання: ${lcFirst(task.verb)} на тему «${topic}». ` +
+               `Цільова аудиторія: ${audience.text}. ` +
+               `Вимоги до форматування: ${format.text}. ` +
+               `Відповідай українською мовою.`;
+      }
+
+      /* --- Детальний режим: структурований промпт із розділами --- */
+      const lines = [];
+      lines.push(`РОЛЬ`);
+      lines.push(`Дій як ${role.text}. Ти експерт ${subject.text}.`);
+      lines.push('');
+      lines.push(`ЗАВДАННЯ`);
+      lines.push(`${task.verb} на тему «${topic}».`);
+      lines.push('');
+      lines.push(`ЦІЛЬОВА АУДИТОРІЯ`);
+      lines.push(audience.text.charAt(0).toUpperCase() + audience.text.slice(1) + '.');
+      lines.push('');
+      lines.push(`ВИМОГИ ДО ЗМІСТУ`);
+      task.reqs.forEach(r => lines.push(`- ${r}`));
+      lines.push(`- Спирайся на перевірені факти; якщо не впевнений у даних — прямо скажи про це, нічого не вигадуй`);
+      lines.push('');
+      lines.push(`ФОРМАТ ВІДПОВІДІ`);
+      lines.push(`- Подай результат як: ${format.text}`);
+      lines.push(`- Мова відповіді: українська`);
+      lines.push('');
+      lines.push(`Якщо для якісного результату бракує вихідних даних, спочатку став мені до трьох уточнювальних запитань.`);
+      return lines.join('\n');
+    }
+
+    /* ============================================================
+       ОНОВЛЕННЯ ІНТЕРФЕЙСУ
+       ============================================================ */
+
+    // Миттєве оновлення тексту в «терміналі»
+    function update() {
+      resultEl.value = buildPrompt();
+
+      const text = resultEl.value;
+      const words = text.trim().split(/\s+/).filter(Boolean).length;
+      metaEl.textContent = `${words} слів · ${text.length} симв.`;
+      hintEl.classList.toggle('show', !topicEl.value.trim());
+
+      // Коротка підсвітка рамки при оновленні
+      resultEl.classList.remove('flash'); void resultEl.offsetWidth; resultEl.classList.add('flash');
+      saveState();
+    }
+
+    // Заповнення списків із даних
+    function fillSelects() {
+      Object.keys(selects).forEach(key => {
+        selects[key].innerHTML = DATA[key].map(o => `<option value="${o.id}">${o.label}</option>`).join('');
+      });
+    }
+
+    function setMode(m) {
+      mode = m;
+      modeBtns.forEach(b => {
+        const on = b.dataset.mode === m;
+        b.classList.toggle('active', on);
+        b.setAttribute('aria-pressed', on);
+      });
+    }
+
+    /* ============================================================
+       ЗБЕРЕЖЕННЯ ВИБОРУ (localStorage)
+       ============================================================ */
+    function saveState() {
+      try {
+        const s = { topic: topicEl.value, mode };
+        Object.keys(selects).forEach(k => s[k] = selects[k].value);
+        localStorage.setItem(STORE_KEY, JSON.stringify(s));
+      } catch (e) {}
+    }
+    function loadState() {
+      try {
+        const s = JSON.parse(localStorage.getItem(STORE_KEY) || 'null');
+        if (!s) return;
+        Object.keys(selects).forEach(k => { if (DATA[k].some(o => o.id === s[k])) selects[k].value = s[k]; });
+        if (typeof s.topic === 'string') topicEl.value = s.topic;
+        if (s.mode) setMode(s.mode);
+      } catch (e) {}
+    }
+
+    /* ============================================================
+       ПОДІЇ
+       ============================================================ */
+    Object.values(selects).forEach(el => el.addEventListener('change', update));   // зміна випадаючих списків
+    topicEl.addEventListener('input', update);                                    // введення теми
+
+    modeBtns.forEach(b => b.addEventListener('click', () => { setMode(b.dataset.mode); update(); }));
+
+    resetBtn.addEventListener('click', () => {
+      Object.values(selects).forEach(el => el.selectedIndex = 0);
+      topicEl.value = ''; setMode('detailed'); update();
+    });
+
+    // Копіювання з резервним варіантом для старих браузерів
+    copyBtn.addEventListener('click', async () => {
+      const text = resultEl.value;
+      if (!text) return;
+      try {
+        await navigator.clipboard.writeText(text);
+      } catch (e) {
+        resultEl.select();
+        document.execCommand('copy');
+        resultEl.setSelectionRange(0, 0);
+      }
+
+      // Зелений стан «Скопійовано!» на 2 секунди
+      const label = copyBtn.querySelector('span'), icon = copyBtn.querySelector('i');
+      copyBtn.classList.add('copied');
+      label.textContent = 'Скопійовано!';
+      icon.className = 'fa-solid fa-check';
+      clearTimeout(copyBtn._t);
+      copyBtn._t = setTimeout(() => {
+        copyBtn.classList.remove('copied');
+        label.textContent = 'Скопіювати Промпт';
+        icon.className = 'fa-regular fa-copy';
+      }, 2000);
+    });
+
+    /* ============================================================
+       ФОН: легке зоряне небо (Canvas)
+       ============================================================ */
+    (function starfield() {
+      const cv = $('stars'), ctx = cv.getContext('2d');
+      const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      let W, H, stars = [];
+
+      function resize() {
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        W = innerWidth; H = innerHeight;
+        cv.width = W * dpr; cv.height = H * dpr;
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        const n = Math.min(140, Math.round(W * H / 11000));
+        stars = Array.from({ length: n }, () => ({
+          x: Math.random() * W, y: Math.random() * H, r: Math.random() * 1.3 + 0.3,
+          p: Math.random() * 6.28, s: Math.random() * 0.012 + 0.004,           // фаза та швидкість мерехтіння
+          c: ['255,255,255', '177,75,244', '0,255,255', '0,255,128'][(Math.random() * 4) | 0]
+        }));
+      }
+
+      function draw() {
+        ctx.clearRect(0, 0, W, H);
+        for (const s of stars) {
+          s.p += s.s;
+          const a = 0.35 + 0.45 * Math.sin(s.p);
+          ctx.fillStyle = `rgba(${s.c}, ${a.toFixed(3)})`;
+          ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, 6.283); ctx.fill();
+        }
+        if (!reduce) requestAnimationFrame(draw);
+      }
+
+      resize(); draw();
+      addEventListener('resize', () => { resize(); if (reduce) draw(); });
+    })();
+
+    /* ============================================================
+       ІНІЦІАЛІЗАЦІЯ
+       ============================================================ */
+    fillSelects();
+    loadState();
+    update();
+  </script>
+</body>
+</html>

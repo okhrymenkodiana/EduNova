@@ -1,0 +1,1011 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Сингулярність · Динамічна рефлексія (Mind Map) · EduNova</title>
+  <meta name="theme-color" content="#0B0F19">
+  <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
+
+  <!-- Шрифти Inter та Montserrat + іконки FontAwesome -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Montserrat:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <style>
+    /* ============================================================
+       1. ДИЗАЙН-СИСТЕМА EDUNOVA (ЗМІННІ ТА БАЗОВІ СТИЛІ)
+       ============================================================ */
+    :root {
+      --bg-space: #0B0F19;
+      --bg-deep: #050b14;
+      --purple: #8A2BE2;
+      --purple-neon: #b14bf4;
+      --cyan: #00BFFF;
+      --cyan-neon: #00ffff;
+      --emerald: #2ECC71;
+      --emerald-neon: #00ff80;
+      --text: #F3F4F6;
+      --text-secondary: #D1D5DB;
+      --muted: #8d97b5;
+      --glass: rgba(15, 23, 42, 0.55);
+      --glass-light: rgba(255, 255, 255, 0.05);
+      --glass-input: rgba(10, 15, 28, 0.72);
+      --border: rgba(255, 255, 255, 0.12);
+      --radius: 16px;
+      --shadow: 0 8px 32px rgba(0, 0, 0, 0.55);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: var(--bg-space);
+      font-family: 'Inter', 'Montserrat', sans-serif;
+      color: var(--text);
+      user-select: none;
+    }
+
+    /* ===== Повноекранний Canvas ===== */
+    #cosmosCanvas {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      display: block;
+      z-index: 1;
+      cursor: grab;
+    }
+    #cosmosCanvas:active {
+      cursor: grabbing;
+    }
+
+    /* ===== Верхня навігація та інфо-бейдж ===== */
+    .top-bar {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      right: 20px;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      pointer-events: none;
+      gap: 16px;
+    }
+
+    .back-hub {
+      pointer-events: auto;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 18px;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      text-decoration: none;
+      background: var(--glass);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      box-shadow: var(--shadow);
+      transition: all 0.3s ease;
+    }
+    .back-hub i {
+      color: var(--cyan-neon);
+      transition: transform 0.3s ease;
+    }
+    .back-hub:hover, .back-hub:focus-visible {
+      border-color: var(--cyan-neon);
+      color: #ffffff;
+      box-shadow: 0 0 22px rgba(0, 255, 255, 0.38), var(--shadow);
+      transform: translateY(-2px);
+      outline: none;
+    }
+    .back-hub:hover i {
+      transform: translateX(-4px);
+    }
+
+    .module-header {
+      pointer-events: auto;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 20px;
+      background: var(--glass);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      box-shadow: var(--shadow);
+    }
+    .module-header .orb {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--purple-neon);
+      box-shadow: 0 0 12px var(--purple-neon), 0 0 24px var(--cyan-neon);
+      animation: pulseOrb 2.4s ease-in-out infinite;
+    }
+    @keyframes pulseOrb {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.35); opacity: 0.7; }
+    }
+    .module-header h1 {
+      font-family: 'Montserrat', 'Inter', sans-serif;
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      color: #ffffff;
+      text-shadow: 0 0 14px rgba(177, 75, 244, 0.6);
+    }
+    .module-header .counter-pill {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--cyan-neon);
+      background: rgba(0, 191, 255, 0.12);
+      border: 1px solid rgba(0, 255, 255, 0.28);
+      padding: 3px 10px;
+      border-radius: 999px;
+    }
+
+    /* ===== Підказка по центру (коли космос порожній) ===== */
+    .empty-hint {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 5;
+      text-align: center;
+      pointer-events: none;
+      max-width: 460px;
+      padding: 28px 32px;
+      background: rgba(15, 23, 42, 0.35);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 1px dashed rgba(255, 255, 255, 0.15);
+      border-radius: 24px;
+      transition: opacity 0.45s ease, transform 0.45s ease, visibility 0.45s;
+    }
+    .empty-hint.hidden {
+      opacity: 0;
+      visibility: hidden;
+      transform: translate(-50%, -45%) scale(0.92);
+    }
+    .empty-hint .hint-icon {
+      width: 64px;
+      height: 64px;
+      margin: 0 auto 14px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      font-size: 26px;
+      color: var(--purple-neon);
+      background: radial-gradient(circle, rgba(138, 43, 226, 0.25) 0%, rgba(0, 191, 255, 0.05) 70%);
+      border: 1px solid rgba(177, 75, 244, 0.4);
+      box-shadow: 0 0 30px rgba(138, 43, 226, 0.35);
+      animation: spinSlow 14s linear infinite;
+    }
+    @keyframes spinSlow { to { transform: rotate(360deg); } }
+    .empty-hint h2 {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 20px;
+      font-weight: 700;
+      color: #ffffff;
+      text-shadow: 0 0 18px rgba(0, 191, 255, 0.5);
+      margin-bottom: 8px;
+    }
+    .empty-hint p {
+      font-size: 14px;
+      color: var(--text-secondary);
+      line-height: 1.55;
+    }
+
+    /* ===== Панель керування внизу по центру (Glassmorphism) ===== */
+    .control-panel {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 20;
+      width: min(760px, calc(100vw - 32px));
+      padding: 16px 20px;
+      background: var(--glass);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow), 0 0 40px rgba(138, 43, 226, 0.15);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .status-line {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--text-secondary);
+      padding: 0 4px;
+    }
+    .status-line span i {
+      color: var(--cyan-neon);
+      margin-right: 6px;
+    }
+    .status-tip {
+      color: var(--muted);
+      font-size: 11.5px;
+    }
+
+    .controls-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .input-wrap {
+      position: relative;
+      flex: 1;
+      display: flex;
+      align-items: center;
+    }
+    .input-wrap i {
+      position: absolute;
+      left: 16px;
+      color: var(--cyan-neon);
+      font-size: 15px;
+      pointer-events: none;
+      filter: drop-shadow(0 0 6px rgba(0, 255, 255, 0.5));
+    }
+
+    #wordInput {
+      width: 100%;
+      font-family: inherit;
+      font-size: 15px;
+      color: var(--text);
+      background: var(--glass-input);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      border-radius: 12px;
+      padding: 13px 16px 13px 42px;
+      outline: none;
+      transition: border-color 0.25s ease, box-shadow 0.25s ease, background-color 0.25s ease;
+    }
+    #wordInput::placeholder {
+      color: var(--muted);
+    }
+    #wordInput:hover {
+      border-color: rgba(0, 191, 255, 0.4);
+    }
+    #wordInput:focus {
+      border-color: var(--cyan-neon);
+      box-shadow: 0 0 0 3px rgba(0, 255, 255, 0.18), 0 0 20px rgba(0, 191, 255, 0.3);
+    }
+
+    .btn {
+      font-family: inherit;
+      font-size: 14.5px;
+      font-weight: 700;
+      border: none;
+      border-radius: 12px;
+      padding: 13px 22px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      white-space: nowrap;
+      transition: transform 0.2s ease, box-shadow 0.25s ease, background 0.25s ease, border-color 0.25s ease, color 0.25s ease;
+    }
+    .btn:hover {
+      transform: translateY(-2px);
+    }
+    .btn:active {
+      transform: scale(0.97);
+    }
+    .btn:focus-visible {
+      outline: 2px solid var(--cyan-neon);
+      outline-offset: 3px;
+    }
+
+    .btn-add {
+      color: #050b14;
+      background: linear-gradient(120deg, var(--cyan-neon), var(--purple-neon) 60%, var(--emerald-neon));
+      background-size: 200% 100%;
+      box-shadow: 0 0 22px rgba(0, 255, 255, 0.35), 0 0 36px rgba(138, 43, 226, 0.28);
+    }
+    .btn-add:hover {
+      background-position: 100% 0;
+      box-shadow: 0 0 32px rgba(0, 255, 255, 0.6), 0 0 50px rgba(177, 75, 244, 0.5);
+    }
+
+    .btn-clear {
+      color: var(--text-secondary);
+      background: rgba(15, 23, 42, 0.65);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+    .btn-clear:hover {
+      color: #ffffff;
+      border-color: #ff4d6d;
+      box-shadow: 0 0 20px rgba(255, 77, 109, 0.35);
+      background: rgba(255, 77, 109, 0.12);
+    }
+
+    /* ===== Адаптивність ===== */
+    @media (max-width: 720px) {
+      .top-bar {
+        top: 12px;
+        left: 12px;
+        right: 12px;
+      }
+      .back-hub {
+        padding: 8px 14px;
+        font-size: 13px;
+      }
+      .module-header h1 {
+        display: none;
+      }
+      .control-panel {
+        bottom: 12px;
+        padding: 14px;
+      }
+      .controls-row {
+        flex-wrap: wrap;
+      }
+      .input-wrap {
+        flex-basis: 100%;
+      }
+      .btn-add, .btn-clear {
+        flex: 1;
+        padding: 12px 14px;
+      }
+      .status-tip {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Верхня навігаційна панель -->
+  <div class="top-bar">
+    <a class="back-hub" href="../index.html" aria-label="Повернутися до навігатора">
+      <i class="fa-solid fa-arrow-left"></i>
+      <span>← Назад до Хабу</span>
+    </a>
+
+    <div class="module-header">
+      <span class="orb"></span>
+      <h1>Сингулярність · Mind Map</h1>
+      <span class="counter-pill" id="nodeCounter">Вузлів: 0</span>
+    </div>
+  </div>
+
+  <!-- Початкова підказка, поки не введено перше слово -->
+  <div class="empty-hint" id="emptyHint">
+    <div class="hint-icon"><i class="fa-solid fa-circle-nodes"></i></div>
+    <h2>Точка Сингулярності</h2>
+    <p>Введіть головне слово або тему уроку внизу та натисніть <b>Enter</b>. Перше слово стане центром тяжіння, а всі наступні ідеї утворять живу зоряну карту знань.</p>
+  </div>
+
+  <!-- Повноекранний Canvas для Mind Map -->
+  <canvas id="cosmosCanvas"></canvas>
+
+  <!-- Панель керування (Glassmorphism) -->
+  <section class="control-panel" aria-label="Керування картою думок">
+    <div class="status-line">
+      <span id="statusPrompt"><i class="fa-solid fa-sparkles"></i> Крок 1: Введіть центральну тему («Сингулярність»)</span>
+      <span class="status-tip">Можна перетягувати вузли мишкою</span>
+    </div>
+    <div class="controls-row">
+      <div class="input-wrap">
+        <i class="fa-solid fa-shuttle-space" id="inputIcon"></i>
+        <input
+          type="text"
+          id="wordInput"
+          maxlength="48"
+           autocomplete="off"
+          placeholder="Введіть центральну тему або ідею та натисніть Enter…"
+        >
+      </div>
+      <button type="button" class="btn btn-add" id="addBtn">
+        <i class="fa-solid fa-plus"></i>
+        <span>Додати</span>
+      </button>
+      <button type="button" class="btn btn-clear" id="clearBtn" title="Скинути всю карту">
+        <i class="fa-solid fa-trash-can"></i>
+        <span>Очистити космос</span>
+      </button>
+    </div>
+  </section>
+
+  <script>
+    /* ============================================================
+       МОДУЛЬ «СИНГУЛЯРНІСТЬ» — ООП MIND MAP НА CANVAS
+       ============================================================ */
+
+    const canvas = document.getElementById('cosmosCanvas');
+    const ctx = canvas.getContext('2d');
+
+    const wordInput    = document.getElementById('wordInput');
+    const addBtn       = document.getElementById('addBtn');
+    const clearBtn     = document.getElementById('clearBtn');
+    const emptyHint    = document.getElementById('emptyHint');
+    const statusPrompt = document.getElementById('statusPrompt');
+    const nodeCounter  = document.getElementById('nodeCounter');
+
+    // Палітра неонових акцентів EduNova для орбітальних вузлів
+    const NEON_PALETTE = [
+      { hex: '#00ffff', rgb: '0, 255, 255' },     // Cyan Neon
+      { hex: '#b14bf4', rgb: '177, 75, 244' },    // Purple Neon
+      { hex: '#00ff80', rgb: '0, 255, 128' },     // Emerald Neon
+      { hex: '#00BFFF', rgb: '0, 191, 255' },     // Deep Sky Blue
+      { hex: '#8A2BE2', rgb: '138, 43, 226' },    // Blue Violet
+      { hex: '#2ECC71', rgb: '46, 204, 113' }     // Emerald Classic
+    ];
+
+    let W = window.innerWidth;
+    let H = window.innerHeight;
+    let DPR = Math.min(window.devicePixelRatio || 1, 2);
+
+    // Масив фонових зірок та масив вузлів Mind Map
+    let bgStars = [];
+    let nodes = [];
+    let draggedNode = null;
+    let hoveredNode = null;
+
+    /* ============================================================
+       КЛАС NODE (Вузол карти знань)
+       ============================================================ */
+    class Node {
+      /**
+       * @param {Object} opts
+       * @param {number} opts.x - початкова координата X
+       * @param {number} opts.y - початкова координата Y
+       * @param {number} opts.targetX - цільова координата X
+       * @param {number} opts.targetY - цільова координата Y
+       * @param {string} opts.text - текст вузла
+       * @param {string} opts.color - основний колір (HEX)
+       * @param {string} opts.rgb - RGB-компоненти для прозорого світіння
+       * @param {boolean} opts.isCenter - чи є вузол центральною «Сингулярністю»
+       * @param {number} opts.orbitAngle - кут орбіти (для адаптивності при resize)
+       * @param {number} opts.orbitRatio - відносна відстань від центру (0..1)
+       */
+      constructor({ x, y, targetX, targetY, text, color, rgb, isCenter = false, orbitAngle = 0, orbitRatio = 0 }) {
+        this.x = x;
+        this.y = y;
+        this.targetX = targetX;
+        this.targetY = targetY;
+        this.text = text;
+        this.color = color;
+        this.rgb = rgb;
+        this.isCenter = isCenter;
+
+        // Зберігаємо полярні координати для збереження пропорцій при зміні розміру вікна
+        this.orbitAngle = orbitAngle;
+        this.orbitRatio = orbitRatio;
+
+        // Швидкість для пружинної фізики вильоту з центру
+        this.vx = 0;
+        this.vy = 0;
+
+        // Параметри плавного космічного дрейфу (унікальна фаза та частота)
+        this.phaseX = Math.random() * Math.PI * 2;
+        this.phaseY = Math.random() * Math.PI * 2;
+        this.freqX = 0.6 + Math.random() * 0.6;
+        this.freqY = 0.5 + Math.random() * 0.6;
+        this.driftAmp = isCenter ? 3.5 : (7 + Math.random() * 7);
+
+        // Візуальні параметри
+        this.scale = 0.1;
+        this.baseRadius = isCenter ? 54 : 32;
+        this.hitRadius = isCenter ? 64 : 46;
+        this.pulseOffset = Math.random() * Math.PI * 2;
+      }
+
+      /**
+       * Оновлення фізики вузла (виліт із центру + невагомий дрейф)
+       */
+      update(time, dt) {
+        // Плавна поява масштабу
+        this.scale += (1 - this.scale) * Math.min(1, dt * 7);
+
+        if (draggedNode === this && !this.isCenter) {
+          // Якщо користувач перетягує вузол, оновлюємо полярні координати відносно центру
+          const cx = W / 2;
+          const cy = H / 2;
+          const dx = this.targetX - cx;
+          const dy = this.targetY - cy;
+          const maxR = Math.min(W, H) * 0.43;
+          this.orbitAngle = Math.atan2(dy, dx);
+          this.orbitRatio = Math.min(1.15, Math.hypot(dx, dy) / Math.max(120, maxR));
+          this.x += (this.targetX - this.x) * 0.35;
+          this.y += (this.targetY - this.y) * 0.35;
+          return;
+        }
+
+        // Космічний дрейф навколо цільової орбітальної точки
+        const driftX = Math.sin(time * this.freqX + this.phaseX) * this.driftAmp;
+        const driftY = Math.cos(time * this.freqY + this.phaseY) * this.driftAmp;
+
+        const destX = this.targetX + driftX;
+        const destY = this.targetY + driftY;
+
+        // Пружинна інтерполяція (easing) для плавного вильоту з центру
+        const spring = this.isCenter ? 0.12 : 0.075;
+        const damping = 0.80;
+
+        this.vx = (this.vx + (destX - this.x) * spring) * damping;
+        this.vy = (this.vy + (destY - this.y) * spring) * damping;
+
+        this.x += this.vx;
+        this.y += this.vy;
+      }
+
+      /**
+       * Малювання вузла на Canvas
+       */
+      draw(ctx, time) {
+        ctx.save();
+        ctx.translate(this.x, this.y);
+        ctx.scale(this.scale, this.scale);
+
+        const isHovered = hoveredNode === this;
+
+        if (this.isCenter) {
+          this.drawSingularity(ctx, time, isHovered);
+        } else {
+          this.drawOrbitalNode(ctx, time, isHovered);
+        }
+
+        ctx.restore();
+      }
+
+      /**
+       * Малювання центральної «Сингулярності» (Чорна діра з пульсуючим акреційним диском)
+       */
+      drawSingularity(ctx, time, isHovered) {
+        const pulse = 1 + 0.08 * Math.sin(time * 2.8);
+        const r = this.baseRadius * pulse;
+
+        // 1. Зовнішнє гравітаційне гало (акреційна туманність)
+        const outerGrad = ctx.createRadialGradient(0, 0, r * 0.35, 0, 0, r * 2.5);
+        outerGrad.addColorStop(0, 'rgba(138, 43, 226, 0.65)');
+        outerGrad.addColorStop(0.45, 'rgba(0, 191, 255, 0.28)');
+        outerGrad.addColorStop(0.75, 'rgba(46, 204, 113, 0.08)');
+        outerGrad.addColorStop(1, 'rgba(11, 15, 25, 0)');
+        ctx.fillStyle = outerGrad;
+        ctx.beginPath();
+        ctx.arc(0, 0, r * 2.5, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 2. Обертові кільця акреційного диска
+        ctx.save();
+        ctx.rotate(time * 0.65);
+        ctx.lineWidth = 2.5;
+        ctx.strokeStyle = 'rgba(0, 255, 255, 0.55)';
+        ctx.shadowColor = '#00ffff';
+        ctx.shadowBlur = 18;
+        ctx.setLineDash([18, 12, 6, 12]);
+        ctx.beginPath();
+        ctx.arc(0, 0, r * 1.28, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+
+        ctx.save();
+        ctx.rotate(-time * 0.95);
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = 'rgba(177, 75, 244, 0.7)';
+        ctx.shadowColor = '#b14bf4';
+        ctx.shadowBlur = 16;
+        ctx.setLineDash([10, 14]);
+        ctx.beginPath();
+        ctx.arc(0, 0, r * 1.1, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+
+        // 3. Горизонт подій (глибоке чорне ядро чорної діри з яскравим фотонним кільцем)
+        ctx.save();
+        ctx.fillStyle = '#03050a';
+        ctx.shadowColor = isHovered ? '#00ffff' : '#8A2BE2';
+        ctx.shadowBlur = isHovered ? 38 : 28;
+        ctx.beginPath();
+        ctx.arc(0, 0, r * 0.92, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Фотонне кільце
+        const ringGrad = ctx.createLinearGradient(-r, -r, r, r);
+        ringGrad.addColorStop(0, '#00ffff');
+        ringGrad.addColorStop(0.5, '#b14bf4');
+        ringGrad.addColorStop(1, '#00ff80');
+        ctx.lineWidth = isHovered ? 3.2 : 2.4;
+        ctx.strokeStyle = ringGrad;
+        ctx.stroke();
+        ctx.restore();
+
+        // 4. Текст центральної теми з неоновим світінням
+        ctx.save();
+        ctx.font = "700 17px 'Montserrat', 'Inter', sans-serif";
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillStyle = '#FFFFFF';
+        ctx.shadowColor = '#00ffff';
+        ctx.shadowBlur = 16;
+        ctx.fillText(this.text, 0, 0);
+        ctx.restore();
+      }
+
+      /**
+       * Малювання орбітального вузла (ідеї/терміна)
+       */
+      drawOrbitalNode(ctx, time, isHovered) {
+        const pulse = 1 + 0.06 * Math.sin(time * 2.2 + this.pulseOffset);
+
+        ctx.font = "600 14.5px 'Inter', sans-serif";
+        const textWidth = ctx.measureText(this.text).width;
+        const padX = 18;
+        const pillW = Math.max(76, textWidth + padX * 2);
+        const pillH = 38;
+        const radius = pillH / 2;
+
+        // Сяючий ореол позаду капсули вузла
+        const glowR = Math.max(pillW * 0.65, 42) * pulse;
+        const halo = ctx.createRadialGradient(0, 0, 4, 0, 0, glowR);
+        halo.addColorStop(0, `rgba(${this.rgb}, ${isHovered ? 0.38 : 0.22})`);
+        halo.addColorStop(1, `rgba(${this.rgb}, 0)`);
+        ctx.fillStyle = halo;
+        ctx.beginPath();
+        ctx.arc(0, 0, glowR, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Скляна капсула вузла
+        ctx.save();
+        ctx.fillStyle = isHovered ? 'rgba(15, 23, 42, 0.88)' : 'rgba(11, 16, 30, 0.78)';
+        ctx.strokeStyle = isHovered ? '#ffffff' : this.color;
+        ctx.lineWidth = isHovered ? 2 : 1.4;
+        ctx.shadowColor = this.color;
+        ctx.shadowBlur = isHovered ? 22 : 12;
+
+        roundRect(ctx, -pillW / 2, -pillH / 2, pillW, pillH, radius);
+        ctx.fill();
+        ctx.stroke();
+        ctx.restore();
+
+        // Неонова точка-орбіталь зліва всередині капсули
+        ctx.save();
+        ctx.fillStyle = this.color;
+        ctx.shadowColor = this.color;
+        ctx.shadowBlur = 10;
+        ctx.beginPath();
+        ctx.arc(-pillW / 2 + 12, 0, 3.5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+
+        // Текст вузла за допомогою ctx.fillText із тінями світіння
+        ctx.save();
+        ctx.font = "600 14.5px 'Inter', sans-serif";
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillStyle = '#F3F4F6';
+        ctx.shadowColor = this.color;
+        ctx.shadowBlur = 12;
+        ctx.fillText(this.text, 4, 0);
+        ctx.restore();
+
+        // Оновлюємо радіус захоплення мишкою під розмір тексту
+        this.hitRadius = Math.max(32, pillW / 2);
+      }
+    }
+
+    /* Допоміжна функція для малювання заокругленої капсули на Canvas */
+    function roundRect(ctx, x, y, w, h, r) {
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.lineTo(x + w - r, y);
+      ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+      ctx.lineTo(x + w, y + h - r);
+      ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+      ctx.lineTo(x + r, y + h);
+      ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+      ctx.lineTo(x, y + r);
+      ctx.quadraticCurveTo(x, y, x + r, y);
+      ctx.closePath();
+    }
+
+    /* ============================================================
+       ФОНОВІ ЗІРКИ ТА ТУМАННОСТІ
+       ============================================================ */
+    function initStars() {
+      const count = Math.min(180, Math.round((W * H) / 9000));
+      bgStars = Array.from({ length: count }, () => ({
+        x: Math.random() * W,
+        y: Math.random() * H,
+        r: 0.4 + Math.random() * 1.4,
+        phase: Math.random() * Math.PI * 2,
+        speed: 0.5 + Math.random() * 1.5,
+        rgb: ['255,255,255', '0,191,255', '177,75,244', '46,204,113'][(Math.random() * 4) | 0]
+      }));
+    }
+
+    function drawBackground(time) {
+      ctx.fillStyle = '#0B0F19';
+      ctx.fillRect(0, 0, W, H);
+
+      // М'які космічні туманності
+      const nebulae = [
+        { x: W * 0.2, y: H * 0.25, r: Math.max(W, H) * 0.45, rgb: '138, 43, 226', a: 0.11 },
+        { x: W * 0.8, y: H * 0.72, r: Math.max(W, H) * 0.48, rgb: '0, 191, 255', a: 0.09 },
+        { x: W * 0.5, y: H * 0.5,  r: Math.max(W, H) * 0.35, rgb: '46, 204, 113', a: 0.05 }
+      ];
+      for (const n of nebulae) {
+        const g = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, n.r);
+        g.addColorStop(0, `rgba(${n.rgb}, ${n.a})`);
+        g.addColorStop(1, `rgba(${n.rgb}, 0)`);
+        ctx.fillStyle = g;
+        ctx.fillRect(0, 0, W, H);
+      }
+
+      // Мерехтливі зорі
+      for (const s of bgStars) {
+        const alpha = 0.25 + 0.55 * (0.5 + 0.5 * Math.sin(time * s.speed + s.phase));
+        ctx.fillStyle = `rgba(${s.rgb}, ${alpha.toFixed(3)})`;
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    /* ============================================================
+       ЕНЕРГЕТИЧНІ ЛІНІЇ ЗВ'ЯЗКУ
+       ============================================================ */
+    function drawConnections(time) {
+      if (nodes.length < 2) return;
+      const center = nodes[0];
+
+      for (let i = 1; i < nodes.length; i++) {
+        const node = nodes[i];
+        const dx = node.x - center.x;
+        const dy = node.y - center.y;
+        const dist = Math.hypot(dx, dy);
+        if (dist < 2) continue;
+
+        ctx.save();
+
+        // Градієнтна енергетична лінія від Сингулярності до вузла
+        const grad = ctx.createLinearGradient(center.x, center.y, node.x, node.y);
+        grad.addColorStop(0, 'rgba(177, 75, 244, 0.75)');
+        grad.addColorStop(0.5, `rgba(${node.rgb}, 0.45)`);
+        grad.addColorStop(1, `rgba(${node.rgb}, 0.85)`);
+
+        ctx.strokeStyle = grad;
+        ctx.lineWidth = hoveredNode === node ? 2.4 : 1.5;
+        ctx.shadowColor = node.color;
+        ctx.shadowBlur = hoveredNode === node ? 14 : 6;
+
+        ctx.beginPath();
+        ctx.moveTo(center.x, center.y);
+        ctx.lineTo(node.x, node.y);
+        ctx.stroke();
+
+        // Енергетичний імпульс (фотон), що рухається вздовж лінії зв'язку
+        const pulseT = ((time * 0.45 + i * 0.23) % 1);
+        const px = center.x + dx * pulseT;
+        const py = center.y + dy * pulseT;
+
+        ctx.fillStyle = '#ffffff';
+        ctx.shadowColor = node.color;
+        ctx.shadowBlur = 10;
+        ctx.beginPath();
+        ctx.arc(px, py, 2.4, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.restore();
+      }
+    }
+
+    /* ============================================================
+       ДОДАВАННЯ СЛІВ ТА РОЗРАХУНОК ОРБІТ
+       ============================================================ */
+    function addWord() {
+      const text = wordInput.value.trim();
+      if (!text) {
+        wordInput.focus();
+        return;
+      }
+
+      const cx = W / 2;
+      const cy = H / 2 - 20; // легке зміщення вгору з урахуванням нижньої панелі
+
+      if (nodes.length === 0) {
+        // Перше слово — центральна «Сингулярність»
+        nodes.push(new Node({
+          x: cx,
+          y: cy,
+          targetX: cx,
+          targetY: cy,
+          text,
+          color: '#8A2BE2',
+          rgb: '138, 43, 226',
+          isCenter: true
+        }));
+      } else {
+        // Наступні слова вилітають із центру на рівномірно розподілені орбіти
+        const index = nodes.length; // 1, 2, 3...
+        const paletteItem = NEON_PALETTE[(index - 1) % NEON_PALETTE.length];
+
+        // Золотий кут (~137.5°) забезпечує рівномірний розподіл навколо центру без накладань
+        const goldenAngle = 2.399963229728653;
+        const angle = index * goldenAngle + (Math.random() - 0.5) * 0.22;
+
+        // Розподіл по орбітальних кільцях (0.42 .. 0.92 від максимального радіуса)
+        const ringStep = ((index - 1) % 3) / 2; // 0, 0.5, 1
+        const orbitRatio = 0.44 + ringStep * 0.38 + (Math.random() - 0.5) * 0.08;
+
+        const maxRadiusX = Math.max(140, Math.min(W * 0.42, 480));
+        const maxRadiusY = Math.max(120, Math.min(H * 0.36, 340));
+
+        const center = nodes[0];
+        const targetX = center.targetX + Math.cos(angle) * maxRadiusX * orbitRatio;
+        const targetY = center.targetY + Math.sin(angle) * maxRadiusY * orbitRatio;
+
+        nodes.push(new Node({
+          x: center.x,
+          y: center.y,
+          targetX,
+          targetY,
+          text,
+          color: paletteItem.hex,
+          rgb: paletteItem.rgb,
+          isCenter: false,
+          orbitAngle: angle,
+          orbitRatio
+        }));
+      }
+
+      wordInput.value = '';
+      wordInput.focus();
+      syncUI();
+    }
+
+    function clearCosmos() {
+      nodes = [];
+      draggedNode = null;
+      hoveredNode = null;
+      syncUI();
+      wordInput.focus();
+    }
+
+    function syncUI() {
+      const count = nodes.length;
+      nodeCounter.textContent = `Вузлів: ${count}`;
+      emptyHint.classList.toggle('hidden', count > 0);
+
+      if (count === 0) {
+        statusPrompt.innerHTML = `<i class="fa-solid fa-sparkles"></i> Крок 1: Введіть центральну тему («Сингулярність»)`;
+        wordInput.placeholder = 'Введіть центральну тему або ідею та натисніть Enter…';
+      } else {
+        statusPrompt.innerHTML = `<i class="fa-solid fa-satellite"></i> Сингулярність: «<b>${escapeHtml(nodes[0].text)}</b>» — додавайте асоціації та ідеї учнів`;
+        wordInput.placeholder = 'Додати асоціацію чи термін на орбіту (Enter)…';
+      }
+    }
+
+    function escapeHtml(str) {
+      return str.replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
+    }
+
+    /* ============================================================
+       АДАПТИВНІСТЬ ТА ПЕРЕРАХУНОК ПОЗИЦІЙ ПРИ RESIZE
+       ============================================================ */
+    function resizeCanvas() {
+      DPR = Math.min(window.devicePixelRatio || 1, 2);
+      W = window.innerWidth;
+      H = window.innerHeight;
+
+      canvas.width = W * DPR;
+      canvas.height = H * DPR;
+      ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+
+      initStars();
+
+      if (nodes.length > 0) {
+        const cx = W / 2;
+        const cy = H / 2 - 20;
+        nodes[0].targetX = cx;
+        nodes[0].targetY = cy;
+
+        const maxRadiusX = Math.max(140, Math.min(W * 0.42, 480));
+        const maxRadiusY = Math.max(120, Math.min(H * 0.36, 340));
+
+        for (let i = 1; i < nodes.length; i++) {
+          const n = nodes[i];
+          n.targetX = cx + Math.cos(n.orbitAngle) * maxRadiusX * n.orbitRatio;
+          n.targetY = cy + Math.sin(n.orbitAngle) * maxRadiusY * n.orbitRatio;
+        }
+      }
+    }
+
+    /* ============================================================
+       ІНТЕРАКТИВНІСТЬ НА CANVAS (ПЕРЕТЯГУВАННЯ ТА HOVER ВУЗЛІВ)
+       ============================================================ */
+    function getNodeAt(x, y) {
+      for (let i = nodes.length - 1; i >= 0; i--) {
+        const n = nodes[i];
+        if (Math.hypot(x - n.x, y - n.y) <= n.hitRadius) {
+          return n;
+        }
+      }
+      return null;
+    }
+
+    canvas.addEventListener('pointerdown', e => {
+      const found = getNodeAt(e.clientX, e.clientY);
+      if (found && !found.isCenter) {
+        draggedNode = found;
+        canvas.setPointerCapture(e.pointerId);
+      }
+    });
+
+    canvas.addEventListener('pointermove', e => {
+      if (draggedNode) {
+        draggedNode.targetX = Math.max(60, Math.min(W - 60, e.clientX));
+        draggedNode.targetY = Math.max(70, Math.min(H - 120, e.clientY));
+      } else {
+        hoveredNode = getNodeAt(e.clientX, e.clientY);
+        canvas.style.cursor = hoveredNode ? (hoveredNode.isCenter ? 'default' : 'pointer') : 'grab';
+      }
+    });
+
+    canvas.addEventListener('pointerup', () => {
+      draggedNode = null;
+    });
+
+    /* ============================================================
+       ГОЛОВНИЙ ЦИКЛ АНІМАЦІЇ (requestAnimationFrame)
+       ============================================================ */
+    let lastTs = 0;
+    function animate(ts) {
+      const time = ts / 1000;
+      const dt = lastTs ? Math.min(0.05, (ts - lastTs) / 1000) : 0.016;
+      lastTs = ts;
+
+      drawBackground(time);
+      drawConnections(time);
+
+      // Спочатку оновлюємо й малюємо орбітальні вузли, а центральну Сингулярність — зверху
+      for (let i = 1; i < nodes.length; i++) {
+        nodes[i].update(time, dt);
+        nodes[i].draw(ctx, time);
+      }
+      if (nodes.length > 0) {
+        nodes[0].update(time, dt);
+        nodes[0].draw(ctx, time);
+      }
+
+      requestAnimationFrame(animate);
+    }
+
+    /* ============================================================
+       ОБРОБНИКИ ПОДІЙ
+       ============================================================ */
+    addBtn.addEventListener('click', addWord);
+    wordInput.addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        addWord();
+      }
+    });
+    clearBtn.addEventListener('click', clearCosmos);
+    window.addEventListener('resize', resizeCanvas);
+
+    // Старт
+    resizeCanvas();
+    syncUI();
+    wordInput.focus();
+    requestAnimationFrame(animate);
+  </script>
+</body>
+</html>

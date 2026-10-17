@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Рятувальна Капсула · Блекаут-генератор · EduNova</title>
+  <meta name="theme-color" content="#050b14">
+  <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
+
+  <!-- Шрифти (Inter для інтерфейсу, Montserrat для картки) та іконки FontAwesome -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Montserrat:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <!-- Бібліотека для перетворення картки в зображення -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+  <style>
+    /* ============================================================
+       EDUNOVA DESIGN SYSTEM — ЗМІННІ ІНТЕРФЕЙСУ
+       ============================================================ */
+    :root {
+      --bg-space: #050b14;
+      --bg-deep: #0a0b10;
+      --cyan: #00ffff;
+      --purple: #b14bf4;
+      --emerald: #00ff80;
+      --amber: #ffb800;
+      --text: #F3F4F6;
+      --text-secondary: #D1D5DB;
+      --muted: #8d97b5;
+      --glass: rgba(15, 23, 42, 0.5);
+      --glass-input: rgba(10, 15, 30, 0.65);
+      --border: rgba(255, 255, 255, 0.1);
+      --radius: 16px;
+      --shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', 'Roboto', sans-serif;
+      color: var(--text);
+      background-color: var(--bg-space);
+      background-image:
+        radial-gradient(1.5px 1.5px at 16% 24%, rgba(255, 255, 255, 0.75) 50%, transparent 100%),
+        radial-gradient(1px 1px at 36% 64%, rgba(0, 255, 255, 0.65) 50%, transparent 100%),
+        radial-gradient(1.5px 1.5px at 54% 18%, rgba(255, 255, 255, 0.55) 50%, transparent 100%),
+        radial-gradient(2px 2px at 78% 32%, rgba(177, 75, 244, 0.7) 50%, transparent 100%),
+        radial-gradient(1px 1px at 88% 72%, rgba(255, 255, 255, 0.65) 50%, transparent 100%),
+        radial-gradient(1.5px 1.5px at 24% 84%, rgba(0, 255, 128, 0.6) 50%, transparent 100%),
+        radial-gradient(800px 500px at 10% 10%, rgba(177, 75, 244, 0.15), transparent 60%),
+        radial-gradient(800px 500px at 90% 85%, rgba(0, 255, 255, 0.11), transparent 60%),
+        linear-gradient(180deg, var(--bg-space) 0%, var(--bg-deep) 100%);
+      background-size: 330px 330px, 430px 430px, 280px 280px, 500px 500px, 390px 390px, 450px 450px, 100% 100%, 100% 100%, 100% 100%;
+      background-attachment: fixed;
+      min-height: 100vh; padding: 28px 20px 44px; line-height: 1.5;
+    }
+
+    .container { max-width: 1240px; margin: 0 auto; }
+
+    /* ===== Навігація: Кнопка «Назад до Хабу» ===== */
+    .top-nav {
+      display: flex;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+    .back-hub {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 18px;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      text-decoration: none;
+      background: var(--glass);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      box-shadow: var(--shadow);
+      transition: all 0.3s ease;
+    }
+    .back-hub i {
+      color: var(--cyan);
+      transition: transform 0.3s ease;
+    }
+    .back-hub:hover, .back-hub:focus-visible {
+      border-color: var(--cyan);
+      color: #ffffff;
+      box-shadow: 0 0 20px rgba(0, 255, 255, 0.38), var(--shadow);
+      transform: translateY(-2px);
+      outline: none;
+    }
+    .back-hub:hover i {
+      transform: translateX(-4px);
+    }
+
+    header { margin-bottom: 24px; }
+    .badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-size: 12px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase;
+      color: var(--purple);
+      background: rgba(177, 75, 244, 0.12);
+      border: 1px solid rgba(177, 75, 244, 0.35);
+      backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+      padding: 6px 14px; border-radius: 999px; margin-bottom: 12px;
+    }
+    h1 {
+      font-size: clamp(26px, 3.8vw, 38px); font-weight: 800; letter-spacing: -0.02em; color: #ffffff;
+      text-shadow: 0 0 22px rgba(177, 75, 244, 0.5), 0 0 40px rgba(0, 255, 255, 0.25);
+    }
+    .subtitle { color: var(--text-secondary); margin-top: 6px; }
+
+    /* Дві рівні колонки */
+    .columns { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
+
+    /* Панелі з ефектом матового скла */
+    .panel {
+      background: var(--glass); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--border); border-radius: var(--radius);
+      box-shadow: var(--shadow); padding: 26px;
+    }
+    .panel-title {
+      font-size: 17px; font-weight: 600; color: #ffffff;
+      text-shadow: 0 0 14px rgba(0, 255, 255, 0.35);
+      display: flex; align-items: center; gap: 10px; margin-bottom: 20px;
+    }
+    .panel-title i { color: var(--cyan); filter: drop-shadow(0 0 8px rgba(0, 255, 255, 0.6)); }
+
+    /* ============================================================
+       ФОРМА
+       ============================================================ */
+    .field { margin-bottom: 18px; }
+    .field label {
+      display: flex; align-items: center; justify-content: space-between; gap: 8px;
+      font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 8px;
+    }
+    .field label .l { display: flex; align-items: center; gap: 9px; }
+    .field label .ico {
+      width: 28px; height: 28px; border-radius: 8px; display: grid; place-items: center; font-size: 13px;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+    }
+    .ico.topic { background: rgba(177, 75, 244, 0.16); color: var(--purple); border-color: rgba(177, 75, 244, 0.35); }
+    .ico.fact  { background: rgba(255, 184, 0, 0.16); color: var(--amber); border-color: rgba(255, 184, 0, 0.35); }
+    .ico.ask   { background: rgba(0, 255, 255, 0.14); color: var(--cyan); border-color: rgba(0, 255, 255, 0.35); }
+    .ico.task  { background: rgba(0, 255, 128, 0.14); color: var(--emerald); border-color: rgba(0, 255, 128, 0.35); }
+    .counter { font-size: 12px; font-weight: 500; color: var(--text-secondary); opacity: 0.8; }
+
+    input[type="text"], textarea {
+      width: 100%; font-family: inherit; font-size: 15px; color: var(--text); line-height: 1.55;
+      background: var(--glass-input); border: 1px solid rgba(255, 255, 255, 0.16); border-radius: 14px; padding: 12px 15px; outline: none;
+      transition: border-color .25s ease, box-shadow .25s ease;
+    }
+    textarea { resize: vertical; min-height: 92px; }
+    input[type="text"]:hover, textarea:hover { border-color: rgba(0, 255, 255, 0.4); }
+    input:focus, textarea:focus {
+      border-color: var(--cyan);
+      box-shadow: 0 0 0 3px rgba(0, 255, 255, 0.2), 0 0 18px rgba(0, 255, 255, 0.28);
+    }
+    ::placeholder { color: var(--muted); }
+
+    /* Вибір теми картки */
+    .themes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .theme-btn {
+      font-family: inherit; font-size: 13px; font-weight: 600; color: var(--text-secondary); cursor: pointer;
+      background: var(--glass-input); border: 1.5px solid rgba(255, 255, 255, 0.14); border-radius: 14px; padding: 10px 8px;
+      display: flex; flex-direction: column; align-items: center; gap: 8px;
+      transition: transform .2s ease, border-color .25s ease, box-shadow .25s ease, color .25s ease;
+    }
+    .theme-btn:hover { transform: translateY(-2px); color: #ffffff; border-color: rgba(0, 255, 255, 0.45); }
+    .theme-btn:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+    .theme-btn.active {
+      color: #ffffff;
+      border-color: var(--cyan);
+      box-shadow: 0 0 18px rgba(0, 255, 255, 0.35), inset 0 0 12px rgba(0, 255, 255, 0.12);
+    }
+    .swatch { width: 100%; height: 34px; border-radius: 9px; border: 1px solid rgba(255, 255, 255, 0.2); }
+    .swatch.light { background: #fffbea; }
+    .swatch.dark  { background: #0f172a; }
+    .swatch.grid  {
+      background-color: #fff;
+      background-image: linear-gradient(#bfdbfe 1px, transparent 1px), linear-gradient(90deg, #bfdbfe 1px, transparent 1px);
+      background-size: 8px 8px;
+    }
+
+    .switch-row {
+      display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--text-secondary);
+      margin-top: 16px; cursor: pointer; user-select: none;
+    }
+    .switch-row input { width: 18px; height: 18px; accent-color: var(--cyan); cursor: pointer; }
+
+    .form-actions { display: flex; gap: 10px; margin-top: 22px; flex-wrap: wrap; }
+
+    /* Кнопки */
+    .btn {
+      font-family: inherit; font-weight: 600; cursor: pointer; border: 1px solid transparent; border-radius: 14px;
+      display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+      transition: transform .2s ease, box-shadow .25s ease, background .25s ease, border-color .25s ease, color .25s ease;
+    }
+    .btn:hover:not(:disabled) { transform: translateY(-2px); }
+    .btn:active:not(:disabled) { transform: scale(.97); }
+    .btn:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+    .btn:disabled { opacity: .65; cursor: progress; }
+
+    .btn-ghost {
+      font-size: 14px; padding: 10px 16px;
+      background: rgba(10, 15, 30, 0.6); color: var(--text); border-color: rgba(255, 255, 255, 0.16);
+    }
+    .btn-ghost:hover:not(:disabled) {
+      border-color: var(--cyan);
+      box-shadow: 0 0 16px rgba(0, 255, 255, 0.28);
+    }
+
+    .btn-download {
+      width: 100%; font-size: 17px; font-weight: 700; padding: 17px 24px; color: #050b14;
+      background: linear-gradient(120deg, var(--cyan), var(--purple) 55%, var(--emerald));
+      box-shadow: 0 0 28px rgba(0, 255, 255, 0.35), 0 0 45px rgba(177, 75, 244, 0.25);
+    }
+    .btn-download:hover:not(:disabled) {
+      box-shadow: 0 0 40px rgba(0, 255, 255, 0.6), 0 0 60px rgba(177, 75, 244, 0.4);
+    }
+
+    .btn-jpg {
+      width: 100%; margin-top: 10px; font-size: 14px; padding: 12px;
+      background: rgba(10, 15, 30, 0.55); color: var(--text-secondary); border-color: rgba(255, 255, 255, 0.16);
+    }
+    .btn-jpg:hover:not(:disabled) {
+      color: #ffffff;
+      border-color: var(--purple);
+      box-shadow: 0 0 18px rgba(177, 75, 244, 0.35);
+    }
+
+    /* ============================================================
+       ПРАВА КОЛОНКА: ПЕРЕГЛЯД
+       ============================================================ */
+    .preview-col { position: sticky; top: 20px; }
+    .preview-stage {
+      background: rgba(5, 11, 20, 0.6);
+      border: 1px dashed rgba(0, 255, 255, 0.3);
+      border-radius: 16px; padding: 14px; margin-bottom: 18px;
+    }
+    /* Контейнер, що масштабує картку під ширину екрана (лише для перегляду) */
+    #holder { width: 100%; overflow: hidden; }
+    #scaler { width: 540px; transform-origin: top left; }
+
+    /* ============================================================
+       КАРТКА (#capture-area) — фіксована ширина 540px, експорт ×2 = 1080px
+       Теми змінюють лише CSS-змінні --c-*
+       ============================================================ */
+    #capture-area {
+      --c-bg: #fffbea;           /* фон картки */
+      --c-ink: #111827;          /* основний текст */
+      --c-sub: #4b5563;          /* другорядний текст */
+      --c-block: #ffffff;        /* фон блоку */
+      --c-line: #111827;         /* рамки */
+      --c-fact: #f59e0b;  --c-fact-bg: #fef3c7;
+      --c-ask:  #2563eb;  --c-ask-bg:  #dbeafe;
+      --c-task: #16a34a;  --c-task-bg: #dcfce7;
+      --c-ph: #9ca3af;
+
+      width: 540px; min-height: 640px; padding: 30px 28px 24px; position: relative;
+      font-family: 'Montserrat', 'Inter', sans-serif; color: var(--c-ink);
+      background: var(--c-bg); border-radius: 28px;
+      display: flex; flex-direction: column; gap: 18px;
+    }
+    #capture-area.theme-dark {
+      --c-bg: #0b1220; --c-ink: #f8fafc; --c-sub: #cbd5e1; --c-block: #172033; --c-line: #f8fafc;
+      --c-fact: #fbbf24; --c-fact-bg: #3a2c08;
+      --c-ask: #60a5fa;  --c-ask-bg: #12294d;
+      --c-task: #4ade80; --c-task-bg: #0f3a22;
+      --c-ph: #64748b;
+    }
+    #capture-area.theme-grid {
+      --c-bg: #ffffff; --c-block: rgba(255, 255, 255, 0.92); --c-line: #1e3a8a; --c-ph: #94a3b8;
+      background-color: #fff;
+      background-image:
+        linear-gradient(rgba(96, 165, 250, 0.45) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(96, 165, 250, 0.45) 1px, transparent 1px);
+      background-size: 27px 27px;
+    }
+    #capture-area.theme-grid::before {   /* червоне поле зошита */
+      content: ""; position: absolute; top: 0; bottom: 0; left: 14px; width: 2px; background: rgba(239, 68, 68, 0.6);
+    }
+
+    /* Верхня стрічка картки */
+    .c-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 14px; font-weight: 700; }
+    .c-chip {
+      display: inline-flex; align-items: center; gap: 8px; padding: 7px 14px; border-radius: 999px;
+      background: var(--c-ink); color: var(--c-bg); max-width: 70%;
+    }
+    .c-date { display: inline-flex; align-items: center; gap: 7px; color: var(--c-sub); font-weight: 600; }
+    .c-date.hidden { visibility: hidden; }
+
+    .c-topic { font-size: 38px; line-height: 1.12; font-weight: 800; letter-spacing: -0.02em; word-break: break-word; white-space: pre-line; }
+    .c-topic.is-empty, .c-chip.is-empty { opacity: .45; }
+
+    /* Інформаційні блоки */
+    .c-block {
+      display: flex; gap: 16px; align-items: flex-start;
+      background: var(--c-block); border: 3px solid var(--c-line); border-radius: 22px; padding: 18px 18px;
+    }
+    .c-badge {
+      flex: 0 0 52px; width: 52px; height: 52px; border-radius: 16px; display: grid; place-items: center;
+      font-size: 24px; border: 3px solid var(--c-line);
+    }
+    .c-block.fact .c-badge { background: var(--c-fact-bg); color: var(--c-fact); }
+    .c-block.ask  .c-badge { background: var(--c-ask-bg);  color: var(--c-ask); }
+    .c-block.task .c-badge { background: var(--c-task-bg); color: var(--c-task); }
+    .c-body { min-width: 0; flex: 1; }
+    .c-label { font-size: 13px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; margin-bottom: 6px; }
+    .c-block.fact .c-label { color: var(--c-fact); }
+    .c-block.ask  .c-label { color: var(--c-ask); }
+    .c-block.task .c-label { color: var(--c-task); }
+    .c-text { font-size: 21px; line-height: 1.42; font-weight: 600; white-space: pre-line; word-break: break-word; }
+    .c-block.task { border-style: solid; }
+
+    /* Порожній блок у перегляді: пунктир і приглушений текст (при експорті такі блоки видаляються) */
+    .c-block.is-empty { border-style: dashed; opacity: .6; }
+    .c-block.is-empty .c-text { color: var(--c-ph); font-weight: 500; font-size: 17px; }
+
+    .c-foot {
+      margin-top: auto; padding-top: 6px; display: flex; align-items: center; justify-content: center; gap: 10px;
+      font-size: 13px; font-weight: 700; color: var(--c-sub); letter-spacing: .02em;
+    }
+    .c-foot i { color: var(--c-fact); }
+
+    /* Toast */
+    .toast {
+      position: fixed; left: 50%; bottom: 28px; z-index: 20; display: flex; align-items: center; gap: 10px;
+      background: var(--glass); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--emerald); color: var(--emerald);
+      font-size: 14px; font-weight: 500; padding: 12px 20px; border-radius: 999px;
+      box-shadow: 0 0 24px rgba(0, 255, 128, 0.3), var(--shadow);
+      transform: translate(-50%, 30px); opacity: 0; pointer-events: none; transition: transform .35s ease, opacity .3s ease;
+    }
+    .toast.show { transform: translate(-50%, 0); opacity: 1; }
+    .toast.error { border-color: #ff4d6d; color: #ff4d6d; box-shadow: 0 0 24px rgba(255, 77, 109, 0.35), var(--shadow); }
+
+    /* Адаптивність */
+    @media (max-width: 900px) {
+      .columns { grid-template-columns: 1fr; }
+      .preview-col { position: static; }
+    }
+    @media (max-width: 480px) {
+      body { padding: 18px 12px 34px; }
+      .panel { padding: 18px; }
+      .preview-stage { padding: 8px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <!-- Навігація назад до Хабу -->
+    <nav class="top-nav" aria-label="Навігація платформи">
+      <a class="back-hub" href="../index.html">
+        <i class="fa-solid fa-arrow-left"></i>
+        <span>← Назад до Хабу</span>
+      </a>
+    </nav>
+
+    <header>
+      <span class="badge"><i class="fa-solid fa-bolt"></i> EduNova · Рятувальна Капсула</span>
+      <h1>Блекаут-генератор</h1>
+      <p class="subtitle">Аварійні офлайн-картки: заповніть поля, перевірте картку праворуч і надішліть учням картинкою.</p>
+    </header>
+
+    <main class="columns">
+
+      <!-- ===== Ліва колонка: форма ===== -->
+      <section class="panel" aria-labelledby="formTitle">
+        <h2 class="panel-title" id="formTitle"><i class="fa-solid fa-pen-to-square"></i> Дані для картки</h2>
+
+        <div class="field">
+          <label for="topic"><span class="l"><span class="ico topic"><i class="fa-solid fa-bookmark"></i></span> Тема уроку</span><span class="counter" data-for="topic"></span></label>
+          <input type="text" id="topic" maxlength="90" placeholder="Наприклад: Фотосинтез у рослин">
+        </div>
+
+        <div class="field">
+          <label for="subject"><span class="l"><span class="ico topic"><i class="fa-solid fa-graduation-cap"></i></span> Предмет і клас <small style="color:var(--text-secondary);font-weight:500;opacity:.75">(необов'язково)</small></span><span class="counter" data-for="subject"></span></label>
+          <input type="text" id="subject" maxlength="40" placeholder="Біологія · 6 клас">
+        </div>
+
+        <div class="field">
+          <label for="fact"><span class="l"><span class="ico fact"><i class="fa-solid fa-lightbulb"></i></span> Короткий факт / теорія</span><span class="counter" data-for="fact"></span></label>
+          <textarea id="fact" maxlength="320" placeholder="2–3 речення: головне, що треба запам'ятати"></textarea>
+        </div>
+
+        <div class="field">
+          <label for="question"><span class="l"><span class="ico ask"><i class="fa-solid fa-circle-question"></i></span> Питання «на подумати»</span><span class="counter" data-for="question"></span></label>
+          <input type="text" id="question" maxlength="160" placeholder="Питання для роздумів без гугління">
+        </div>
+
+        <div class="field">
+          <label for="task"><span class="l"><span class="ico task"><i class="fa-solid fa-pencil"></i></span> Офлайн-завдання</span><span class="counter" data-for="task"></span></label>
+          <textarea id="task" maxlength="320" placeholder="Що зробити руками: намалювати, записати в зошит, розв'язати…"></textarea>
+        </div>
+
+        <div class="field" style="margin-bottom:0">
+          <label style="margin-bottom:10px"><span class="l"><span class="ico topic"><i class="fa-solid fa-palette"></i></span> Тема картки</span></label>
+          <div class="themes" role="group" aria-label="Тема картки">
+            <button type="button" class="theme-btn active" data-theme="light" aria-pressed="true"><span class="swatch light"></span>Світла</button>
+            <button type="button" class="theme-btn" data-theme="dark" aria-pressed="false"><span class="swatch dark"></span>Темна</button>
+            <button type="button" class="theme-btn" data-theme="grid" aria-pressed="false"><span class="swatch grid"></span>У клітинку</button>
+          </div>
+          <label class="switch-row"><input type="checkbox" id="showDate" checked> Показувати дату на картці</label>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn btn-ghost" id="clearBtn"><i class="fa-regular fa-trash-can"></i> Очистити форму</button>
+          <button type="button" class="btn btn-ghost" id="sampleBtn"><i class="fa-solid fa-flask"></i> Приклад</button>
+        </div>
+      </section>
+
+      <!-- ===== Права колонка: перегляд та експорт ===== -->
+      <section class="panel preview-col" aria-labelledby="prevTitle">
+        <h2 class="panel-title" id="prevTitle"><i class="fa-regular fa-eye"></i> Попередній перегляд</h2>
+
+        <div class="preview-stage">
+          <div id="holder">
+            <div id="scaler">
+
+              <!-- ===== КАРТКА, ЯКА ЕКСПОРТУЄТЬСЯ ===== -->
+              <article id="capture-area" class="theme-light">
+                <div class="c-head">
+                  <span class="c-chip" id="cSubject"><i class="fa-solid fa-book-open-reader"></i><span id="cSubjectText"></span></span>
+                  <span class="c-date" id="cDate"><i class="fa-regular fa-calendar-days"></i><span id="cDateText"></span></span>
+                </div>
+
+                <h3 class="c-topic" id="cTopic">Тема уроку</h3>
+
+                <section class="c-block fact" id="bFact">
+                  <div class="c-badge"><i class="fa-solid fa-lightbulb"></i></div>
+                  <div class="c-body"><div class="c-label">Запам'ятай</div><p class="c-text" id="cFact"></p></div>
+                </section>
+
+                <section class="c-block ask" id="bAsk">
+                  <div class="c-badge"><i class="fa-solid fa-circle-question"></i></div>
+                  <div class="c-body"><div class="c-label">Подумай</div><p class="c-text" id="cAsk"></p></div>
+                </section>
+
+                <section class="c-block task" id="bTask">
+                  <div class="c-badge"><i class="fa-solid fa-pencil"></i></div>
+                  <div class="c-body"><div class="c-label">Зроби в зошиті</div><p class="c-text" id="cTask"></p></div>
+                </section>
+
+                <footer class="c-foot"><i class="fa-solid fa-lightbulb"></i> Навчання не зупиняється без світла</footer>
+              </article>
+
+            </div>
+          </div>
+        </div>
+
+        <button type="button" class="btn btn-download" id="pngBtn"><i class="fa-solid fa-download"></i><span>Завантажити як картинку (PNG)</span></button>
+        <button type="button" class="btn btn-jpg" id="jpgBtn"><i class="fa-regular fa-image"></i><span>Завантажити як JPG</span></button>
+      </section>
+    </main>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"><i class="fa-solid fa-circle-check"></i><span id="toastText"></span></div>
+
+  <script>
+    /* ============================================================
+       КОНСТАНТИ ТА DOM
+       ============================================================ */
+    const CARD_W = 540;                       // фіксована ширина картки, px (експорт ×2 = 1080 px)
+    const EXPORT_SCALE = 2;
+    const STORE_KEY = 'blackoutCard_v1';
+
+    const $ = id => document.getElementById(id);
+    const card = $('capture-area');
+
+    // Поля форми
+    const inputs = { topic: $('topic'), subject: $('subject'), fact: $('fact'), question: $('question'), task: $('task') };
+    const showDate = $('showDate');
+    const themeBtns = document.querySelectorAll('.theme-btn');
+
+    let theme = 'light';
+
+    /* ============================================================
+       РЕАКТИВНИЙ РЕНДЕР КАРТКИ
+       ============================================================ */
+
+    // Записує текст або показує підказку, якщо поле порожнє
+    function setText(el, value, placeholder, emptyTargets) {
+      const v = value.trim();
+      el.textContent = v || placeholder;
+      emptyTargets.forEach(t => t.classList.toggle('is-empty', !v));
+    }
+
+    function render() {
+      setText($('cTopic'), inputs.topic.value, 'Тема уроку', [$('cTopic')]);
+      setText($('cFact'),  inputs.fact.value,     'Тут з\'явиться короткий факт або теорія…', [$('bFact')]);
+      setText($('cAsk'),   inputs.question.value, 'Тут з\'явиться питання «на подумати»…',   [$('bAsk')]);
+      setText($('cTask'),  inputs.task.value,     'Тут з\'явиться офлайн-завдання…',         [$('bTask')]);
+
+      // Чіп із предметом: якщо порожній — прибираємо з експорту
+      const subj = inputs.subject.value.trim();
+      $('cSubjectText').textContent = subj || 'Предмет · клас';
+      $('cSubject').classList.toggle('is-empty', !subj);
+
+      // Дата
+      $('cDateText').textContent = new Date().toLocaleDateString('uk-UA', { day: 'numeric', month: 'long', year: 'numeric' });
+      $('cDate').classList.toggle('hidden', !showDate.checked);
+
+      // Лічильники символів
+      document.querySelectorAll('.counter').forEach(c => {
+        const el = inputs[c.dataset.for];
+        c.textContent = el.value.length + ' / ' + el.maxLength;
+      });
+
+      fitPreview();
+      saveDraft();
+    }
+
+    // Масштабує картку під ширину контейнера (тільки для екрана, не для експорту)
+    function fitPreview() {
+      const holder = $('holder'), scaler = $('scaler');
+      const s = Math.min(1, holder.clientWidth / CARD_W);
+      scaler.style.transform = `scale(${s})`;
+      holder.style.height = Math.ceil(card.offsetHeight * s) + 'px';
+    }
+
+    function setTheme(name) {
+      theme = name;
+      card.className = 'theme-' + name;
+      themeBtns.forEach(b => {
+        const on = b.dataset.theme === name;
+        b.classList.toggle('active', on);
+        b.setAttribute('aria-pressed', on);
+      });
+      saveDraft();
+    }
+
+    /* ============================================================
+       ЧОРНОВИК (localStorage)
+       ============================================================ */
+    function saveDraft() {
+      try {
+        const data = { theme, showDate: showDate.checked };
+        Object.keys(inputs).forEach(k => data[k] = inputs[k].value);
+        localStorage.setItem(STORE_KEY, JSON.stringify(data));
+      } catch (e) { /* сховище недоступне — не критично */ }
+    }
+    function loadDraft() {
+      try {
+        const d = JSON.parse(localStorage.getItem(STORE_KEY) || 'null');
+        if (!d) return;
+        Object.keys(inputs).forEach(k => { if (typeof d[k] === 'string') inputs[k].value = d[k]; });
+        showDate.checked = d.showDate !== false;
+        if (d.theme) setTheme(d.theme);
+      } catch (e) {}
+    }
+
+    /* ============================================================
+       TOAST
+       ============================================================ */
+    let toastTimer;
+    function toast(msg, isError = false) {
+      $('toastText').textContent = msg;
+      const t = $('toast');
+      t.classList.toggle('error', isError);
+      t.querySelector('i').className = isError ? 'fa-solid fa-triangle-exclamation' : 'fa-solid fa-circle-check';
+      t.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => t.classList.remove('show'), 2600);
+    }
+
+    /* ============================================================
+       ЕКСПОРТ У КАРТИНКУ (html2canvas)
+       ============================================================ */
+    async function exportCard(format) {
+      const hasContent = ['topic', 'fact', 'question', 'task'].some(k => inputs[k].value.trim());
+      if (!hasContent) { toast('Заповніть хоча б одне поле картки', true); return; }
+      if (typeof html2canvas === 'undefined') {
+        toast('Бібліотека html2canvas не завантажилась. Перевірте інтернет і оновіть сторінку', true);
+        return;
+      }
+
+      const btns = [$('pngBtn'), $('jpgBtn')];
+      const labels = btns.map(b => b.querySelector('span').textContent);
+      const icons = btns.map(b => b.querySelector('i').className);
+      btns.forEach(b => { b.disabled = true; b.querySelector('i').className = 'fa-solid fa-circle-notch fa-spin'; b.querySelector('span').textContent = 'Створюю картинку…'; });
+
+      try {
+        await document.fonts.ready;                      // чекаємо на шрифти й іконки
+
+        const canvas = await html2canvas(card, {
+          scale: EXPORT_SCALE,
+          backgroundColor: null,
+          useCORS: true,
+          logging: false,
+          onclone: doc => {
+            // У клоні прибираємо масштабування перегляду та порожні (підказкові) елементи
+            doc.getElementById('scaler').style.transform = 'none';
+            doc.querySelectorAll('#capture-area .is-empty').forEach(el => el.remove());
+          }
+        });
+
+        // Для JPG підкладаємо суцільний фон під заокруглені кути
+        let out = canvas;
+        if (format === 'jpg') {
+          out = document.createElement('canvas');
+          out.width = canvas.width; out.height = canvas.height;
+          const c = out.getContext('2d');
+          c.fillStyle = '#ffffff'; c.fillRect(0, 0, out.width, out.height);
+          c.drawImage(canvas, 0, 0);
+        }
+
+        const mime = format === 'jpg' ? 'image/jpeg' : 'image/png';
+        const dataUrl = out.toDataURL(mime, 0.95);
+
+        // Створюємо тимчасове посилання для завантаження
+        const a = document.createElement('a');
+        a.href = dataUrl;
+        a.download = `offline-task-${new Date().toISOString().slice(0, 10)}.${format === 'jpg' ? 'jpg' : 'png'}`;
+        document.body.appendChild(a); a.click(); a.remove();
+
+        toast('Картинку збережено');
+      } catch (err) {
+        console.error(err);
+        toast('Не вдалося створити картинку. Спробуйте ще раз', true);
+      } finally {
+        btns.forEach((b, i) => { b.disabled = false; b.querySelector('i').className = icons[i]; b.querySelector('span').textContent = labels[i]; });
+      }
+    }
+
+    /* ============================================================
+       ПОДІЇ
+       ============================================================ */
+    Object.values(inputs).forEach(el => el.addEventListener('input', render));   // миттєвий перегляд
+    showDate.addEventListener('change', render);
+    themeBtns.forEach(b => b.addEventListener('click', () => { setTheme(b.dataset.theme); render(); }));
+
+    $('clearBtn').addEventListener('click', () => {
+      Object.values(inputs).forEach(el => el.value = '');
+      render(); inputs.topic.focus();
+      toast('Форму очищено');
+    });
+
+    $('sampleBtn').addEventListener('click', () => {
+      inputs.topic.value = 'Фотосинтез: як рослини роблять їжу';
+      inputs.subject.value = 'Біологія · 6 клас';
+      inputs.fact.value = 'Під дією світла рослини перетворюють вуглекислий газ і воду на глюкозу та кисень. Цей процес відбувається в хлоропластах.';
+      inputs.question.value = 'Що станеться з кімнатною рослиною, якщо тиждень тримати її в темряві?';
+      inputs.task.value = 'Намалюйте в зошиті схему фотосинтезу зі стрілками: що рослина отримує і що виділяє.';
+      render();
+    });
+
+    $('pngBtn').addEventListener('click', () => exportCard('png'));
+    $('jpgBtn').addEventListener('click', () => exportCard('jpg'));
+
+    // Перерахунок масштабу при зміні розміру вікна та висоти картки
+    window.addEventListener('resize', fitPreview);
+    if ('ResizeObserver' in window) new ResizeObserver(fitPreview).observe(card);
+
+    /* ============================================================
+       ІНІЦІАЛІЗАЦІЯ
+       ============================================================ */
+    loadDraft();
+    render();
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitPreview);
+  </script>
+</body>
+</html>

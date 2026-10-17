@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Журнальний форматер · Вчительський Мультитул</title>
+
+  <!-- Шрифт Inter та іконки FontAwesome -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <style>
+    /* ===== Змінні теми ===== */
+    :root {
+      --bg: #f9fafb;
+      --card: #ffffff;
+      --card-soft: #f3f4f6;
+      --text: #111827;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+      --primary: #1d4ed8;
+      --primary-dark: #1e40af;
+      --primary-soft: #e0e9ff;
+      --success: #16a34a;
+      --success-dark: #15803d;
+      --radius: 20px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', 'Roboto', sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(700px 400px at 10% -5%, rgba(29, 78, 216, 0.07), transparent 60%),
+        radial-gradient(600px 400px at 95% 0%, rgba(22, 163, 74, 0.06), transparent 60%),
+        var(--bg);
+      min-height: 100vh;
+      padding: 28px 20px 40px;
+      line-height: 1.5;
+    }
+
+    .container { max-width: 1240px; margin: 0 auto; }
+
+    /* ===== Шапка ===== */
+    header { margin-bottom: 20px; }
+    .badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-size: 13px; font-weight: 600; color: var(--primary);
+      background: var(--primary-soft); padding: 5px 13px; border-radius: 999px; margin-bottom: 10px;
+    }
+    h1 { font-size: clamp(24px, 3.5vw, 32px); font-weight: 700; letter-spacing: -0.02em; }
+    .subtitle { color: var(--muted); margin-top: 4px; }
+
+    /* ===== Панель інструментів (легкий glassmorphism) ===== */
+    .toolbar {
+      position: sticky; top: 12px; z-index: 5;
+      display: flex; flex-wrap: wrap; align-items: center; gap: 10px;
+      padding: 12px 14px; margin-bottom: 20px;
+      background: rgba(255, 255, 255, 0.72);
+      backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+      border: 1px solid var(--border); border-radius: var(--radius);
+      box-shadow: 0 8px 28px rgba(17, 24, 39, 0.07);
+    }
+    .toolbar .divider { width: 1px; height: 28px; background: var(--border); margin: 0 4px; }
+    .toolbar .spacer { flex: 1; }
+
+    .btn {
+      font-family: inherit; font-size: 15px; font-weight: 600; cursor: pointer;
+      display: inline-flex; align-items: center; justify-content: center; gap: 9px;
+      border: 1.5px solid transparent; border-radius: 14px; padding: 11px 18px;
+      transition: transform .2s ease, box-shadow .2s ease, background-color .25s ease, color .25s ease, border-color .25s ease;
+    }
+    .btn:hover:not(:disabled) { transform: translateY(-2px); }
+    .btn:active:not(:disabled) { transform: scale(.97); }
+    .btn:focus-visible { outline: 3px solid rgba(29, 78, 216, 0.35); outline-offset: 2px; }
+    .btn:disabled { opacity: .5; cursor: not-allowed; }
+
+    /* Головна кнопка «Авто-формат» */
+    .btn-primary { background: var(--primary); color: #fff; box-shadow: 0 6px 16px rgba(29, 78, 216, 0.3); }
+    .btn-primary:hover:not(:disabled) { background: var(--primary-dark); box-shadow: 0 10px 22px rgba(29, 78, 216, 0.38); }
+    .btn-primary.off { background: #fff; color: var(--primary); border-color: var(--primary); box-shadow: none; }
+
+    /* Кнопки-фільтри (перемикачі) */
+    .btn-filter { background: #fff; color: var(--text); border-color: var(--border); font-weight: 500; font-size: 14px; }
+    .btn-filter .check { width: 18px; height: 18px; border-radius: 50%; display: grid; place-items: center; font-size: 10px;
+      background: var(--card-soft); color: transparent; transition: all .25s ease; }
+    .btn-filter:hover:not(:disabled) { border-color: var(--primary); box-shadow: 0 4px 12px rgba(17, 24, 39, 0.08); }
+    .btn-filter.active { background: var(--primary-soft); border-color: var(--primary); color: var(--primary-dark); }
+    .btn-filter.active .check { background: var(--primary); color: #fff; }
+
+    .btn-ghost { background: transparent; color: var(--muted); border-color: var(--border); font-weight: 500; font-size: 14px; padding: 8px 14px; }
+    .btn-ghost:hover:not(:disabled) { color: var(--text); border-color: #cbd5e1; background: #fff; }
+
+    /* Перемикач «Решту малими» */
+    .switch { display: inline-flex; align-items: center; gap: 10px; font-size: 14px; color: var(--muted); cursor: pointer; user-select: none; }
+    .switch input { position: absolute; opacity: 0; }
+    .switch .track { width: 40px; height: 22px; border-radius: 999px; background: #d1d5db; position: relative; transition: background .25s ease; }
+    .switch .track::after { content: ""; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.25); transition: transform .25s ease; }
+    .switch input:checked + .track { background: var(--primary); }
+    .switch input:checked + .track::after { transform: translateX(18px); }
+    .switch input:focus-visible + .track { outline: 3px solid rgba(29, 78, 216, 0.35); outline-offset: 2px; }
+
+    /* ===== Дві колонки ===== */
+    .columns { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+
+    .card {
+      background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+      box-shadow: 0 8px 28px rgba(17, 24, 39, 0.06); padding: 22px;
+      display: flex; flex-direction: column;
+    }
+    .card-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; flex-wrap: wrap; }
+    .card-head h2 { font-size: 17px; font-weight: 600; display: flex; align-items: center; gap: 10px; }
+    .card-head h2 i { color: var(--primary); }
+
+    textarea {
+      width: 100%; min-height: 420px; flex: 1; resize: vertical;
+      font-family: inherit; font-size: 16px; line-height: 1.7; color: var(--text);
+      background: var(--bg); border: 1.5px solid var(--border); border-radius: 16px; padding: 18px;
+      outline: none; transition: border-color .2s ease, box-shadow .2s ease, background .2s ease;
+    }
+    textarea:focus { background: #fff; border-color: var(--primary); box-shadow: 0 0 0 4px rgba(29, 78, 216, 0.12); }
+    textarea::placeholder { color: #9ca3af; }
+    textarea[readonly] { background: #f5f8ff; cursor: text; padding-bottom: 54px; }
+
+    .card-foot { display: flex; gap: 12px; margin-top: 16px; }
+    .card-foot .btn { flex: 0 0 auto; }
+
+    /* Контейнер результату + лічильник у правому нижньому куті */
+    .output-wrap { position: relative; flex: 1; display: flex; }
+    .stats {
+      position: absolute; right: 14px; bottom: 12px; pointer-events: none;
+      font-size: 12.5px; font-weight: 500; color: var(--muted);
+      background: rgba(255, 255, 255, 0.9); border: 1px solid var(--border);
+      padding: 5px 12px; border-radius: 999px;
+    }
+    .stats b { color: var(--text); font-weight: 600; }
+
+    /* Велика кнопка копіювання */
+    .btn-copy {
+      flex: 1 !important; font-size: 18px; padding: 17px 24px;
+      background: var(--primary); color: #fff; box-shadow: 0 8px 20px rgba(29, 78, 216, 0.3);
+    }
+    .btn-copy:hover:not(:disabled) { background: var(--primary-dark); box-shadow: 0 12px 26px rgba(29, 78, 216, 0.4); }
+    .btn-copy.copied { background: var(--success); box-shadow: 0 8px 20px rgba(22, 163, 74, 0.35); }
+
+    /* Toast */
+    .toast {
+      position: fixed; left: 50%; bottom: 28px; z-index: 20;
+      background: #111827; color: #fff; font-size: 14px; padding: 11px 20px; border-radius: 999px;
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.25);
+      transform: translate(-50%, 30px); opacity: 0; pointer-events: none;
+      transition: transform .35s ease, opacity .3s ease;
+    }
+    .toast.show { transform: translate(-50%, 0); opacity: 1; }
+
+    /* ===== Адаптивність ===== */
+    @media (max-width: 860px) {
+      .columns { grid-template-columns: 1fr; }
+      textarea { min-height: 260px; }
+      .toolbar { position: static; }
+      .toolbar .divider { display: none; }
+      .toolbar .spacer { flex-basis: 100%; height: 0; }
+    }
+    @media (max-width: 480px) {
+      body { padding: 18px 12px 32px; }
+      .card { padding: 16px; }
+      .toolbar .btn { flex: 1 1 100%; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <header>
+      <span class="badge"><i class="fa-solid fa-wand-magic-sparkles"></i> Вчительський Мультитул</span>
+      <h1>Журнальний форматер</h1>
+      <p class="subtitle">Підготуйте теми уроків для електронних журналів («Мрія», АІКОМ 2.0): вставте текст — результат з'явиться одразу.</p>
+    </header>
+
+    <!-- ===== Панель інструментів ===== -->
+    <nav class="toolbar" aria-label="Інструменти форматування">
+      <button class="btn btn-primary" id="autoBtn" type="button" aria-pressed="true" title="Застосувати всі правила одразу">
+        <i class="fa-solid fa-bolt"></i> Авто-формат
+      </button>
+      <span class="divider" aria-hidden="true"></span>
+
+      <button class="btn btn-filter active" data-rule="numbering" type="button" aria-pressed="true">
+        <span class="check"><i class="fa-solid fa-check"></i></span> Видалити нумерацію (1., 1.2, -, *)
+      </button>
+      <button class="btn btn-filter active" data-rule="spaces" type="button" aria-pressed="true">
+        <span class="check"><i class="fa-solid fa-check"></i></span> Видалити зайві пробіли та абзаци
+      </button>
+      <button class="btn btn-filter active" data-rule="caps" type="button" aria-pressed="true">
+        <span class="check"><i class="fa-solid fa-check"></i></span> З великої літери (Виправити регістр)
+      </button>
+
+      <span class="spacer"></span>
+      <label class="switch" title="Усі літери, окрім першої, стануть малими. Увага: абревіатури теж зменшаться.">
+        <input type="checkbox" id="lowerRest">
+        <span class="track"></span> Решту літер — малими
+      </label>
+    </nav>
+
+    <main class="columns">
+
+      <!-- ===== Ліва колонка: вхідні дані ===== -->
+      <section class="card" aria-labelledby="inTitle">
+        <div class="card-head">
+          <h2 id="inTitle"><i class="fa-regular fa-file-lines"></i> Оригінальний текст (з Word/Excel)</h2>
+          <div style="display:flex; gap:8px">
+            <button class="btn btn-ghost" id="pasteBtn" type="button"><i class="fa-regular fa-paste"></i> Вставити</button>
+            <button class="btn btn-ghost" id="sampleBtn" type="button"><i class="fa-solid fa-flask"></i> Приклад</button>
+          </div>
+        </div>
+        <textarea id="input" spellcheck="false" placeholder="Вставте сюди список тем уроків (Ctrl+V)…"></textarea>
+        <div class="card-foot">
+          <button class="btn btn-ghost" id="clearBtn" type="button"><i class="fa-regular fa-trash-can"></i> Очистити поле</button>
+        </div>
+      </section>
+
+      <!-- ===== Права колонка: результат ===== -->
+      <section class="card" aria-labelledby="outTitle">
+        <div class="card-head">
+          <h2 id="outTitle"><i class="fa-solid fa-circle-check" style="color: var(--success)"></i> Відформатований текст</h2>
+        </div>
+        <div class="output-wrap">
+          <textarea id="output" readonly placeholder="Тут з'явиться чистий список тем…"></textarea>
+          <div class="stats" id="stats" aria-live="polite"><b>0</b> симв. · <b>0</b> рядків</div>
+        </div>
+        <div class="card-foot">
+          <button class="btn btn-copy" id="copyBtn" type="button" disabled>
+            <i class="fa-regular fa-copy"></i><span>Скопіювати результат</span>
+          </button>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    /* ============================================================
+       СТАН
+       ============================================================ */
+    const rules = { numbering: true, spaces: true, caps: true };   // активні правила
+
+    /* ============================================================
+       DOM
+       ============================================================ */
+    const $ = id => document.getElementById(id);
+    const inputEl = $('input'), outputEl = $('output'), statsEl = $('stats');
+    const autoBtn = $('autoBtn'), copyBtn = $('copyBtn'), clearBtn = $('clearBtn');
+    const pasteBtn = $('pasteBtn'), sampleBtn = $('sampleBtn'), lowerEl = $('lowerRest'), toastEl = $('toast');
+    const filterBtns = document.querySelectorAll('.btn-filter');
+
+    /* ============================================================
+       ФУНКЦІЇ ОБРОБКИ ТЕКСТУ (RegEx)
+       ============================================================ */
+
+    /* Регулярний вираз маркера на початку рядка. Розпізнає:
+       №1.        — номер зі знаком №
+       1.  1.2.  1)  — числа з крапками/дужкою (але не «1.5 кг»)
+       1.2 Тема   — багаторівнева нумерація без кінцевої крапки (якщо далі велика літера)
+       IV.        — римські цифри
+       а)         — буква з дужкою
+       • ● ▪ * ✓  — маркери списків
+       -  –  —    — дефіси й тире (якщо далі пробіл або літера)        */
+    const MARKER_RE = /^\s*(?:№\s*\d+[.)]?|\d+(?:\.\d+)*[.)](?!\d)|\d+(?:\.\d+)+(?=\s+\p{Lu})|[IVXLC]+[.)](?=\s)|[a-zA-Zа-яА-ЯіїєґІЇЄҐ]\)|[•·▪●○■□►➢✓✔*]+|[-–—−]+(?=\s|\p{L}))\s*/u;
+
+    // 1) Видалення нумерації та маркерів (до 3 разів — для випадків на кшталт «1. - Тема»)
+    function removeNumbering(line) {
+      for (let i = 0; i < 3; i++) {
+        const next = line.replace(MARKER_RE, '');
+        if (next === line) break;
+        line = next;
+      }
+      return line;
+    }
+
+    // 2) Нормалізація пробілів: нерозривні пробіли й табуляції → звичайний пробіл, невидимі символи — прибрати
+    function normalizeWhitespace(line) {
+      return line
+        .replace(/[\u200B-\u200D\uFEFF]/g, '')
+        .replace(/[\u00A0\u2000-\u200A\u202F\u3000\t]/g, ' ');
+    }
+
+    // 3) Перша літера рядка — велика (за потреби решта — малі)
+    function fixCase(line, lowerRest) {
+      return line.replace(/^([^\p{L}\p{N}]*)(\p{L})(.*)$/su,
+        (_, prefix, first, rest) => prefix + first.toUpperCase() + (lowerRest ? rest.toLowerCase() : rest));
+    }
+
+    // Головна функція: застосовує активні правила послідовно
+    function formatText(text) {
+      let lines = text.replace(/\r\n?/g, '\n').split('\n');
+
+      if (rules.spaces)    lines = lines.map(normalizeWhitespace);
+      if (rules.numbering) lines = lines.map(removeNumbering);
+      if (rules.spaces)    lines = lines.map(l => l.replace(/\s+/g, ' ').trim()).filter(Boolean);  // зайві пробіли + порожні рядки
+      if (rules.caps)      lines = lines.map(l => fixCase(l, lowerEl.checked));
+
+      return lines.join('\n');
+    }
+
+    /* ============================================================
+       ОНОВЛЕННЯ ІНТЕРФЕЙСУ
+       ============================================================ */
+
+    // Перерахунок результату «на льоту»
+    function update() {
+      const result = formatText(inputEl.value);
+      outputEl.value = result;
+
+      const lines = result.split('\n').filter(l => l.trim()).length;
+      statsEl.innerHTML = `<b>${result.length}</b> симв. · <b>${lines}</b> рядків`;
+      copyBtn.disabled = !result;
+    }
+
+    // Синхронізація вигляду кнопок з поточним станом правил
+    function syncButtons() {
+      filterBtns.forEach(b => {
+        const on = rules[b.dataset.rule];
+        b.classList.toggle('active', on);
+        b.setAttribute('aria-pressed', on);
+      });
+      const all = Object.values(rules).every(Boolean);
+      autoBtn.classList.toggle('off', !all);
+      autoBtn.setAttribute('aria-pressed', all);
+    }
+
+    let toastTimer;
+    function toast(msg) {
+      toastEl.textContent = msg;
+      toastEl.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toastEl.classList.remove('show'), 2200);
+    }
+
+    /* ============================================================
+       ПОДІЇ
+       ============================================================ */
+
+    // Живе форматування під час введення/вставки
+    inputEl.addEventListener('input', update);
+    lowerEl.addEventListener('change', update);
+
+    // Кнопки-фільтри: вмикають/вимикають окремі правила
+    filterBtns.forEach(btn => btn.addEventListener('click', () => {
+      const r = btn.dataset.rule;
+      rules[r] = !rules[r];
+      syncButtons(); update();
+    }));
+
+    // «Авто-формат»: якщо всі правила вже увімкнені — вимикає їх, інакше вмикає всі
+    autoBtn.addEventListener('click', () => {
+      const all = Object.values(rules).every(Boolean);
+      Object.keys(rules).forEach(k => rules[k] = !all);
+      syncButtons(); update();
+    });
+
+    clearBtn.addEventListener('click', () => { inputEl.value = ''; update(); inputEl.focus(); });
+
+    // Вставка з буфера обміну однією кнопкою
+    pasteBtn.addEventListener('click', async () => {
+      try {
+        inputEl.value = await navigator.clipboard.readText();
+        update();
+      } catch (e) {
+        toast('Не вдалося прочитати буфер. Скористайтеся Ctrl+V');
+        inputEl.focus();
+      }
+    });
+
+    // Приклад «брудного» тексту
+    sampleBtn.addEventListener('click', () => {
+      inputEl.value =
+        '1. тема: Вступ до курсу   \n' +
+        '1.2.  повторення   вивченого\n\n' +
+        '- Додавання і віднімання   в межах 100\n' +
+        '•   множення та ділення\n' +
+        '  а) розв\'язування задач  \n' +
+        '№5 Контрольна робота\n' +
+        '3.1 Узагальнення знань\n' +
+        '\u00A0\u00A0Підсумковий   урок';
+      update();
+    });
+
+    // Копіювання результату
+    copyBtn.addEventListener('click', async () => {
+      const text = outputEl.value;
+      if (!text) return;
+
+      try {
+        await navigator.clipboard.writeText(text);
+      } catch (e) {                                   // запасний варіант для старих браузерів
+        outputEl.select();
+        document.execCommand('copy');
+        outputEl.setSelectionRange(0, 0);
+      }
+
+      // На 2 секунди: зелений колір і напис «Скопійовано!»
+      const label = copyBtn.querySelector('span'), icon = copyBtn.querySelector('i');
+      copyBtn.classList.add('copied');
+      label.textContent = 'Скопійовано!';
+      icon.className = 'fa-solid fa-check';
+      clearTimeout(copyBtn._t);
+      copyBtn._t = setTimeout(() => {
+        copyBtn.classList.remove('copied');
+        label.textContent = 'Скопіювати результат';
+        icon.className = 'fa-regular fa-copy';
+      }, 2000);
+    });
+
+    /* ============================================================
+       ІНІЦІАЛІЗАЦІЯ
+       ============================================================ */
+    syncButtons();
+    update();
+  </script>
+</body>
+</html>

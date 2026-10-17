@@ -1,0 +1,1248 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Гравітаційна Лінза · Керування фокусом уваги · EduNova</title>
+  <meta name="theme-color" content="#0B0F19">
+  <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
+
+  <!-- Шрифти Inter, Montserrat та моноширинний JetBrains Mono для коду + іконки FontAwesome -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Montserrat:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <style>
+    /* ============================================================
+       1. ДИЗАЙН-СИСТЕМА EDUNOVA (ЗМІННІ ТА БАЗОВІ СТИЛІ)
+       ============================================================ */
+    :root {
+      --bg-space: #0B0F19;
+      --bg-deep: #050b14;
+      --cyan: #00BFFF;
+      --cyan-neon: #00ffff;
+      --purple: #8A2BE2;
+      --purple-neon: #b14bf4;
+      --emerald-neon: #00ff80;
+      --text: #F3F4F6;
+      --text-secondary: #D1D5DB;
+      --muted: #8d97b5;
+      --glass: rgba(15, 23, 42, 0.58);
+      --glass-card: rgba(255, 255, 255, 0.05);
+      --glass-input: rgba(8, 12, 24, 0.75);
+      --border: rgba(255, 255, 255, 0.12);
+      --radius: 16px;
+      --shadow: 0 8px 32px rgba(0, 0, 0, 0.55);
+
+      /* Динамічні змінні Гравітаційної Лінзи */
+      --x: 50vw;
+      --y: 50vh;
+      --lens-size: 220px;          /* Діаметр (або радіус) із повзунка 100px..400px */
+      --lens-radius: 110px;        /* Половина розміру для clip-path circle() */
+      --lens-scale: 1.15;          /* Коефіцієнт лупи */
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      width: 100%;
+      min-height: 100vh;
+      background-color: var(--bg-space);
+      background-image:
+        radial-gradient(1.5px 1.5px at 14% 20%, rgba(255, 255, 255, 0.7) 50%, transparent 100%),
+        radial-gradient(1px 1px at 36% 68%, rgba(0, 255, 255, 0.6) 50%, transparent 100%),
+        radial-gradient(1.5px 1.5px at 62% 26%, rgba(255, 255, 255, 0.5) 50%, transparent 100%),
+        radial-gradient(2px 2px at 82% 18%, rgba(177, 75, 244, 0.65) 50%, transparent 100%),
+        radial-gradient(1px 1px at 88% 74%, rgba(255, 255, 255, 0.6) 50%, transparent 100%),
+        radial-gradient(850px 550px at 15% 10%, rgba(138, 43, 226, 0.15), transparent 65%),
+        radial-gradient(850px 550px at 85% 90%, rgba(0, 191, 255, 0.12), transparent 65%),
+        linear-gradient(180deg, var(--bg-space) 0%, var(--bg-deep) 100%);
+      background-size: 340px 340px, 420px 420px, 290px 290px, 510px 510px, 390px 390px, 100% 100%, 100% 100%, 100% 100%;
+      background-attachment: fixed;
+      font-family: 'Inter', 'Montserrat', sans-serif;
+      color: var(--text);
+      overflow-x: hidden;
+      line-height: 1.5;
+    }
+
+    body.lens-active {
+      overflow: hidden;
+      user-select: none;
+      cursor: none;
+    }
+
+    /* ============================================================
+       РЕЖИМ 1: «ОРБІТАЛЬНА СТАНЦІЯ» (НАЛАШТУВАННЯ)
+       ============================================================ */
+    .station-wrapper {
+      position: relative;
+      z-index: 10;
+      max-width: 880px;
+      margin: 0 auto;
+      padding: 28px 20px 48px;
+      transition: opacity 0.4s ease, transform 0.4s ease, visibility 0.4s;
+    }
+
+    body.lens-active .station-wrapper {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transform: scale(0.96);
+    }
+
+    /* Кнопка повернення у лівому верхньому куті */
+    .top-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+    }
+
+    .back-hub {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 18px;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      text-decoration: none;
+      background: var(--glass);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      box-shadow: var(--shadow);
+      transition: all 0.3s ease;
+    }
+    .back-hub i {
+      color: var(--cyan-neon);
+      transition: transform 0.3s ease;
+    }
+    .back-hub:hover, .back-hub:focus-visible {
+      border-color: var(--cyan-neon);
+      color: #ffffff;
+      box-shadow: 0 0 22px rgba(0, 255, 255, 0.38), var(--shadow);
+      transform: translateY(-2px);
+      outline: none;
+    }
+    .back-hub:hover i {
+      transform: translateX(-4px);
+    }
+
+    header {
+      margin-bottom: 24px;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--cyan-neon);
+      background: rgba(0, 191, 255, 0.1);
+      border: 1px solid rgba(0, 255, 255, 0.3);
+      padding: 6px 14px;
+      border-radius: 999px;
+      margin-bottom: 12px;
+    }
+    h1 {
+      font-family: 'Montserrat', 'Inter', sans-serif;
+      font-size: clamp(28px, 4.2vw, 40px);
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: #ffffff;
+      text-shadow: 0 0 24px rgba(0, 191, 255, 0.5), 0 0 44px rgba(138, 43, 226, 0.35);
+    }
+    .subtitle {
+      color: var(--text-secondary);
+      margin-top: 6px;
+      font-size: 15.5px;
+      max-width: 700px;
+    }
+
+    /* Центральна Glass-панель */
+    .glass-panel {
+      background: var(--glass);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow), 0 0 50px rgba(138, 43, 226, 0.12);
+      padding: 28px;
+    }
+
+    /* Перемикач типу джерела: Зображення АБО Код/Текст */
+    .source-tabs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      padding: 6px;
+      background: var(--glass-input);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      margin-bottom: 22px;
+    }
+    .tab-btn {
+      font-family: inherit;
+      font-size: 14.5px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      background: transparent;
+      border: none;
+      border-radius: 10px;
+      padding: 12px 16px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      transition: all 0.25s ease;
+    }
+    .tab-btn:hover {
+      color: #ffffff;
+    }
+    .tab-btn.active {
+      color: #050b14;
+      font-weight: 700;
+      background: linear-gradient(120deg, var(--cyan-neon), var(--purple-neon));
+      box-shadow: 0 0 20px rgba(0, 191, 255, 0.35);
+    }
+
+    .source-pane {
+      display: none;
+    }
+    .source-pane.active {
+      display: block;
+    }
+
+    /* Блок завантаження зображення */
+    .dropzone {
+      position: relative;
+      border: 2px dashed rgba(0, 191, 255, 0.38);
+      border-radius: 16px;
+      background: var(--glass-input);
+      padding: 32px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.25s ease, background-color 0.25s ease, box-shadow 0.25s ease;
+    }
+    .dropzone:hover, .dropzone.dragover {
+      border-color: var(--cyan-neon);
+      background: rgba(0, 191, 255, 0.06);
+      box-shadow: 0 0 26px rgba(0, 191, 255, 0.18);
+    }
+    .dropzone input[type="file"] {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+      width: 100%;
+      height: 100%;
+    }
+    .drop-icon {
+      width: 58px;
+      height: 58px;
+      border-radius: 18px;
+      margin: 0 auto 12px;
+      display: grid;
+      place-items: center;
+      font-size: 24px;
+      color: var(--cyan-neon);
+      background: rgba(0, 191, 255, 0.12);
+      border: 1px solid rgba(0, 255, 255, 0.3);
+      box-shadow: 0 0 20px rgba(0, 191, 255, 0.2);
+    }
+    .dropzone h3 {
+      font-size: 16px;
+      font-weight: 700;
+      color: #ffffff;
+      margin-bottom: 4px;
+    }
+    .dropzone p {
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .image-preview-bar {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      margin-top: 14px;
+      padding: 12px 16px;
+      background: rgba(0, 191, 255, 0.08);
+      border: 1px solid rgba(0, 255, 255, 0.28);
+      border-radius: 12px;
+    }
+    .image-preview-bar.visible {
+      display: flex;
+    }
+    .preview-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+    .preview-thumb {
+      width: 48px;
+      height: 48px;
+      border-radius: 8px;
+      object-fit: cover;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      background: #050b14;
+    }
+    .preview-name {
+      font-size: 13.5px;
+      font-weight: 600;
+      color: #ffffff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .preview-sub {
+      font-size: 12px;
+      color: var(--cyan-neon);
+    }
+
+    /* Панель для коду / тексту */
+    .code-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+    .field-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12.5px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+    }
+    .field-label i {
+      color: var(--cyan-neon);
+    }
+
+    .btn-mini {
+      font-family: inherit;
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 6px 12px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.25s ease;
+    }
+    .btn-mini:hover {
+      color: #ffffff;
+      border-color: var(--cyan-neon);
+      box-shadow: 0 0 14px rgba(0, 191, 255, 0.3);
+    }
+
+    textarea#codeInput {
+      width: 100%;
+      min-height: 220px;
+      resize: vertical;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 14px;
+      line-height: 1.65;
+      color: #e2e8f0;
+      background: var(--glass-input);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      border-radius: 14px;
+      padding: 16px 18px;
+      outline: none;
+      transition: border-color 0.25s ease, box-shadow 0.25s ease;
+    }
+    textarea#codeInput::placeholder {
+      color: var(--muted);
+    }
+    textarea#codeInput:focus {
+      border-color: var(--purple-neon);
+      box-shadow: 0 0 0 3px rgba(177, 75, 244, 0.22), 0 0 22px rgba(177, 75, 244, 0.28);
+    }
+
+    /* Повзунок розміру лінзи (100px - 400px) */
+    .slider-card {
+      margin-top: 22px;
+      padding: 18px 20px;
+      background: var(--glass-card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+    }
+    .slider-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    .size-badge {
+      display: inline-flex;
+      align-items: baseline;
+      gap: 5px;
+      padding: 5px 14px;
+      border-radius: 999px;
+      background: rgba(138, 43, 226, 0.18);
+      border: 1px solid rgba(177, 75, 244, 0.45);
+      box-shadow: 0 0 16px rgba(138, 43, 226, 0.25);
+    }
+    .size-badge strong {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 19px;
+      font-weight: 800;
+      color: #ffffff;
+      font-variant-numeric: tabular-nums;
+    }
+    .size-badge span {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--cyan-neon);
+    }
+
+    input[type="range"]#lensSizeSlider {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 8px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--cyan) 0%, var(--purple-neon) 100%);
+      outline: none;
+      cursor: pointer;
+    }
+    input[type="range"]#lensSizeSlider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: #ffffff;
+      border: 3px solid var(--cyan-neon);
+      box-shadow: 0 0 16px var(--cyan-neon), 0 0 28px var(--purple-neon);
+      cursor: pointer;
+      transition: transform 0.2s ease;
+    }
+    input[type="range"]#lensSizeSlider::-webkit-slider-thumb:hover {
+      transform: scale(1.15);
+    }
+    input[type="range"]#lensSizeSlider::-moz-range-thumb {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: #ffffff;
+      border: 3px solid var(--cyan-neon);
+      box-shadow: 0 0 16px var(--cyan-neon), 0 0 28px var(--purple-neon);
+      cursor: pointer;
+    }
+
+    .slider-marks {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 8px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    /* Головна кнопка активації */
+    .btn-activate {
+      margin-top: 22px;
+      width: 100%;
+      font-family: 'Montserrat', 'Inter', sans-serif;
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: 0.03em;
+      color: #050b14;
+      background: linear-gradient(115deg, var(--cyan-neon) 0%, var(--purple-neon) 55%, var(--emerald-neon) 100%);
+      background-size: 200% 100%;
+      border: none;
+      border-radius: 16px;
+      padding: 19px 26px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      box-shadow: 0 0 30px rgba(0, 191, 255, 0.42), 0 0 55px rgba(138, 43, 226, 0.3);
+      transition: transform 0.25s ease, box-shadow 0.3s ease, background-position 0.5s ease;
+    }
+    .btn-activate:hover {
+      transform: translateY(-2px);
+      background-position: 100% 0;
+      box-shadow: 0 0 44px rgba(0, 255, 255, 0.7), 0 0 75px rgba(177, 75, 244, 0.5);
+    }
+    .btn-activate:active {
+      transform: scale(0.98);
+    }
+
+    /* ============================================================
+       РЕЖИМ 2: «ВІДКРИТИЙ КОСМОС» (ПОВНОЕКРАННА РОБОТА ЛІНЗИ)
+       Двошарова архітектура:
+       1. .layer-base — filter: blur(8px) brightness(0.3)
+       2. .layer-lens-clip -> .layer-lens-zoom — чіткий шар зі збільшенням
+       ============================================================ */
+    .cosmos-viewport {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 30;
+      background: #060911;
+      overflow: hidden;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition: opacity 0.45s ease, visibility 0.45s;
+    }
+
+    body.lens-active .cosmos-viewport {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+    }
+
+    /* Спільний макет для обох шарів, щоб контент збігався піксель-у-піксель */
+    .content-layer {
+      position: absolute;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 36px;
+      overflow: hidden;
+    }
+
+    /* Шар 1 (Нижній фон): розмитий та затемнений */
+    .layer-base {
+      filter: blur(8px) brightness(0.3);
+      transform: scale(1);
+    }
+
+    /* Маска верхнього шару: обмежує видимість колом навколо курсора */
+    .layer-lens-clip {
+      position: absolute;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      clip-path: circle(var(--lens-radius) at var(--x) var(--y));
+      -webkit-clip-path: circle(var(--lens-radius) at var(--x) var(--y));
+      pointer-events: none;
+      will-change: clip-path;
+    }
+
+    /* Шар 2 (Лінза): 100% яскравості, без блюру, збільшений відносно курсора */
+    .layer-lens-zoom {
+      filter: none;
+      transform: scale(var(--lens-scale));
+      transform-origin: var(--x) var(--y);
+      will-change: transform, transform-origin;
+    }
+
+    /* Контент усередині шарів: Картинка */
+    .stage-image {
+      max-width: 92vw;
+      max-height: 90vh;
+      width: auto;
+      height: auto;
+      object-fit: contain;
+      border-radius: 12px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.65);
+    }
+
+    /* Контент усередині шарів: Відформатований Код / Текст */
+    .stage-code-card {
+      width: min(1140px, 92vw);
+      max-height: 88vh;
+      padding: 34px 40px;
+      background: #0d1324;
+      border: 1px solid rgba(0, 255, 255, 0.25);
+      border-radius: 20px;
+      box-shadow: 0 24px 80px rgba(0, 0, 0, 0.75);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .code-card-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-bottom: 14px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      font-family: 'Montserrat', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--cyan-neon);
+    }
+    .code-dots {
+      display: flex;
+      gap: 7px;
+    }
+    .code-dots span {
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+    }
+    .code-dots span:nth-child(1) { background: #ff5f87; }
+    .code-dots span:nth-child(2) { background: #fbbf24; }
+    .code-dots span:nth-child(3) { background: #00ff80; }
+
+    .stage-pre {
+      font-family: 'JetBrains Mono', 'Consolas', monospace;
+      font-size: clamp(15px, 1.55vw, 22px);
+      line-height: 1.7;
+      color: #f8fafc;
+      white-space: pre-wrap;
+      word-break: break-word;
+      text-shadow: 0 0 14px rgba(0, 191, 255, 0.25);
+    }
+
+    /* Візуальне неонове кільце Гравітаційної Лінзи навколо курсора */
+    .lens-ring {
+      position: fixed;
+      left: 0;
+      top: 0;
+      width: var(--lens-size);
+      height: var(--lens-size);
+      border-radius: 50%;
+      transform: translate(calc(var(--x) - var(--lens-radius)), calc(var(--y) - var(--lens-radius)));
+      pointer-events: none;
+      z-index: 35;
+      border: 2px solid rgba(0, 255, 255, 0.75);
+      box-shadow:
+        0 0 28px rgba(0, 191, 255, 0.55),
+        0 0 60px rgba(138, 43, 226, 0.35),
+        inset 0 0 28px rgba(0, 255, 255, 0.22);
+      will-change: transform, width, height;
+    }
+
+    /* Підказка-оверлей, яка зникає через 3 секунди */
+    .esc-overlay {
+      position: fixed;
+      top: 28px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 45;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 24px;
+      background: rgba(11, 15, 25, 0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(0, 255, 255, 0.45);
+      border-radius: 999px;
+      box-shadow: 0 0 30px rgba(0, 191, 255, 0.35), var(--shadow);
+      font-size: 14.5px;
+      font-weight: 600;
+      color: #ffffff;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.5s ease, transform 0.5s ease;
+    }
+    .esc-overlay.visible {
+      opacity: 1;
+    }
+    .esc-overlay kbd {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 12.5px;
+      font-weight: 800;
+      color: #050b14;
+      background: var(--cyan-neon);
+      padding: 3px 9px;
+      border-radius: 6px;
+      box-shadow: 0 0 12px var(--cyan-neon);
+    }
+
+    /* Кнопка виходу у верхньому правому куті (для інтерактивних дощок / планшетів) */
+    .exit-lens-btn {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 46;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      background: rgba(15, 23, 42, 0.65);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 8px 16px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      opacity: 0.35;
+      transition: all 0.25s ease;
+    }
+    .exit-lens-btn:hover {
+      opacity: 1;
+      color: #ffffff;
+      border-color: var(--cyan-neon);
+      box-shadow: 0 0 18px rgba(0, 255, 255, 0.4);
+    }
+
+    @media (max-width: 640px) {
+      .station-wrapper { padding: 18px 12px 34px; }
+      .glass-panel { padding: 20px 16px; }
+      .stage-code-card { padding: 20px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ============================================================
+       РЕЖИМ 1: «ОРБІТАЛЬНА СТАНЦІЯ» (НАЛАШТУВАННЯ)
+       ============================================================ -->
+  <main class="station-wrapper" id="stationWrapper">
+    <nav class="top-nav" aria-label="Навігація платформи">
+      <a class="back-hub" href="../index.html">
+        <i class="fa-solid fa-arrow-left"></i>
+        <span>← Повернутися до меню</span>
+      </a>
+    </nav>
+
+    <header>
+      <div class="badge"><i class="fa-solid fa-magnifying-glass-plus"></i> EduNova · Керування фокусом</div>
+      <h1>Гравітаційна Лінза</h1>
+      <p class="subtitle">Затемнює та розмиває другорядні деталі на екрані, залишаючи кришталево чіткою та збільшеною лише зону навколо вашого курсора.</p>
+    </header>
+
+    <section class="glass-panel" aria-label="Налаштування Гравітаційної Лінзи">
+
+      <!-- Перемикач режиму джерела -->
+      <div class="source-tabs" role="tablist" aria-label="Джерело матеріалу">
+        <button type="button" class="tab-btn active" id="tabImageBtn" data-mode="image" role="tab" aria-selected="true">
+          <i class="fa-regular fa-image"></i>
+          <span>Зображення / Схема</span>
+        </button>
+        <button type="button" class="tab-btn" id="tabCodeBtn" data-mode="code" role="tab" aria-selected="false">
+          <i class="fa-solid fa-code"></i>
+          <span>Код / Фрагмент тексту</span>
+        </button>
+      </div>
+
+      <!-- Вкладка 1: Завантаження зображення -->
+      <div class="source-pane active" id="paneImage" role="tabpanel">
+        <div class="code-toolbar">
+          <span class="field-label"><i class="fa-solid fa-upload"></i> Завантажте схему, карту або інфографіку</span>
+          <button type="button" class="btn-mini" id="demoSchemeBtn">
+            <i class="fa-solid fa-wand-sparkles"></i>
+            <span>Демо-схема (Сонячна система)</span>
+          </button>
+        </div>
+
+        <div class="dropzone" id="dropzone">
+          <input type="file" id="imageInput" accept="image/*" aria-label="Вибрати зображення">
+          <div class="drop-icon"><i class="fa-solid fa-cloud-arrow-up"></i></div>
+          <h3>Перетягніть зображення сюди або натисніть для вибору</h3>
+          <p>Підтримуються PNG, JPG, SVG, WebP — схеми, історичні карти, таблиці, формули</p>
+        </div>
+
+        <div class="image-preview-bar" id="imagePreviewBar">
+          <div class="preview-info">
+            <img src="" alt="Мініатюра" class="preview-thumb" id="previewThumb">
+            <div>
+              <div class="preview-name" id="previewName">Демо-схема: Будова Сонячної системи</div>
+              <div class="preview-sub">Готово до проєкції у Відкритий Космос</div>
+            </div>
+          </div>
+          <button type="button" class="btn-mini" id="replaceImageBtn">
+            <i class="fa-solid fa-rotate"></i>
+            <span>Скинути</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Вкладка 2: Вставка коду або тексту -->
+      <div class="source-pane" id="paneCode" role="tabpanel">
+        <div class="code-toolbar">
+          <label class="field-label" for="codeInput">
+            <i class="fa-solid fa-terminal"></i>
+            <span>Фрагмент коду, формули або текст для аналізу</span>
+          </label>
+          <div style="display:flex; gap:8px;">
+            <button type="button" class="btn-mini" id="demoCodeBtn">
+              <i class="fa-solid fa-wand-sparkles"></i>
+              <span>Приклад коду</span>
+            </button>
+            <button type="button" class="btn-mini" id="clearCodeBtn">
+              <i class="fa-regular fa-trash-can"></i>
+              <span>Очистити</span>
+            </button>
+          </div>
+        </div>
+
+        <textarea
+          id="codeInput"
+          spellcheck="false"
+          placeholder="Вставте сюди програмний код, історичний документ, математичне доведення або правила…"
+        ></textarea>
+      </div>
+
+      <!-- Повзунок розміру лінзи (100px - 400px) -->
+      <div class="slider-card">
+        <div class="slider-head">
+          <label class="field-label" for="lensSizeSlider">
+            <i class="fa-solid fa-circle-dot"></i>
+            <span>Діаметр Гравітаційної Лінзи</span>
+          </label>
+          <div class="size-badge">
+            <strong id="lensSizeValue">240</strong>
+            <span>px</span>
+          </div>
+        </div>
+
+        <input
+          type="range"
+          id="lensSizeSlider"
+          min="100"
+          max="400"
+          step="10"
+          value="240"
+        >
+
+        <div class="slider-marks">
+          <span>100px (Точковий фокус)</span>
+          <span>200px</span>
+          <span>300px</span>
+          <span>400px (Широкий огляд)</span>
+        </div>
+      </div>
+
+      <button type="button" class="btn-activate" id="activateBtn">
+        <i class="fa-solid fa-eye"></i>
+        <span>Активувати Лінзу</span>
+      </button>
+    </section>
+  </main>
+
+  <!-- ============================================================
+       РЕЖИМ 2: «ВІДКРИТИЙ КОСМОС» (ПОВНОЕКРАННА РОБОТА ЛІНЗИ)
+       ============================================================ -->
+  <section class="cosmos-viewport" id="cosmosViewport" aria-label="Режим Гравітаційної Лінзи">
+
+    <!-- Підказка-оверлей, що зникає через 3 секунди -->
+    <div class="esc-overlay" id="escOverlay" role="status">
+      <span>Натисніть <kbd>ESC</kbd> для виходу · Коліщатко миші змінює розмір лінзи</span>
+    </div>
+
+    <button type="button" class="exit-lens-btn" id="exitLensBtn" title="Вийти в налаштування (ESC)">
+      <i class="fa-solid fa-xmark"></i>
+      <span>ESC · Вихід</span>
+    </button>
+
+    <!-- ШАР 1 (НИЖНІЙ ФОН): розмитий та затемнений (filter: blur(8px) brightness(0.3)) -->
+    <div class="content-layer layer-base" id="stageBase"></div>
+
+    <!-- ШАР 2 (ВЕРХНІЙ ШАР — ЛІНЗА): обрізаний колом clip-path та збільшений scale(1.15) -->
+    <div class="layer-lens-clip" id="stageLensClip">
+      <div class="content-layer layer-lens-zoom" id="stageLensZoom"></div>
+    </div>
+
+    <!-- Світлове кільце гравітаційної лінзи -->
+    <div class="lens-ring" id="lensRing" aria-hidden="true"></div>
+
+  </section>
+
+  <script>
+    /* ============================================================
+       МОДУЛЬ «ГРАВІТАЦІЙНА ЛІНЗА» — КЕРУВАННЯ ФОКУСОМ УВАГИ
+       ============================================================ */
+
+    const $ = id => document.getElementById(id);
+
+    const tabImageBtn     = $('tabImageBtn');
+    const tabCodeBtn      = $('tabCodeBtn');
+    const paneImage       = $('paneImage');
+    const paneCode        = $('paneCode');
+
+    const dropzone        = $('dropzone');
+    const imageInput      = $('imageInput');
+    const imagePreviewBar = $('imagePreviewBar');
+    const previewThumb    = $('previewThumb');
+    const previewName     = $('previewName');
+    const replaceImageBtn = $('replaceImageBtn');
+    const demoSchemeBtn   = $('demoSchemeBtn');
+
+    const codeInput       = $('codeInput');
+    const demoCodeBtn     = $('demoCodeBtn');
+    const clearCodeBtn    = $('clearCodeBtn');
+
+    const lensSizeSlider  = $('lensSizeSlider');
+    const lensSizeValue   = $('lensSizeValue');
+    const activateBtn     = $('activateBtn');
+
+    const stageBase       = $('stageBase');
+    const stageLensZoom   = $('stageLensZoom');
+    const escOverlay      = $('escOverlay');
+    const exitLensBtn     = $('exitLensBtn');
+
+    /* ============================================================
+       ДЕМО-КОНТЕНТ (Вбудована SVG-схема та приклад коду)
+       ============================================================ */
+    const DEMO_CODE =
+`# Алгоритм розрахунку першої космічної швидкості
+import math
+
+G = 6.67430e-11  # Гравітаційна стала (м³ / кг·с²)
+
+def orbital_velocity(mass_kg: float, radius_m: float) -> float:
+    """
+    Обчислює першу космічну швидкість (м/с) для небесного тіла:
+    v = sqrt((G * M) / R)
+    """
+    if radius_m <= 0:
+        raise ValueError("Радіус орбіти має бути більшим за нуль!")
+    return math.sqrt((G * mass_kg) / radius_m)
+
+# Параметри планети Земля
+EARTH_MASS = 5.972e24      # кг
+EARTH_RADIUS = 6_371_000   # м
+
+v1 = orbital_velocity(EARTH_MASS, EARTH_RADIUS)
+print(f"Перша космічна швидкість Землі: {v1 / 1000:.2f} км/с")`;
+
+    // Генеруємо детальну навчальну SVG-схему у форматі Base64 для миттєвої демонстрації
+    function createDemoSolarSvgDataUrl() {
+      const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 720" width="1200" height="720">
+        <defs>
+          <radialGradient id="sunGlow" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#fff7ae"/>
+            <stop offset="35%" stop-color="#fbbf24"/>
+            <stop offset="70%" stop-color="#f97316" stop-opacity="0.5"/>
+            <stop offset="100%" stop-color="#0b0f19" stop-opacity="0"/>
+          </radialGradient>
+          <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#080d1a"/>
+            <stop offset="100%" stop-color="#11182d"/>
+          </linearGradient>
+        </defs>
+        <rect width="1200" height="720" fill="url(#bg)"/>
+        <!-- Заголовок схеми -->
+        <text x="60" y="64" fill="#00ffff" font-family="Montserrat, sans-serif" font-size="28" font-weight="800">БУДОВА СОНЯЧНОЇ СИСТЕМИ · ПОРІВНЯЛЬНА СХЕМА ОРБІТ</text>
+        <text x="60" y="96" fill="#94a3b8" font-family="Inter, sans-serif" font-size="16">Наведіть Гравітаційну Лінзу на планету або таблицю параметрів для детального аналізу</text>
+
+        <!-- Орбітальні дуги -->
+        <g fill="none" stroke="#334155" stroke-width="1.5" stroke-dasharray="6 6">
+          <circle cx="130" cy="380" r="150"/>
+          <circle cx="130" cy="380" r="230"/>
+          <circle cx="130" cy="380" r="320"/>
+          <circle cx="130" cy="380" r="415"/>
+          <circle cx="130" cy="380" r="545"/>
+          <circle cx="130" cy="380" r="680"/>
+          <circle cx="130" cy="380" r="815"/>
+          <circle cx="130" cy="380" r="940"/>
+        </g>
+
+        <!-- Сонце -->
+        <circle cx="130" cy="380" r="115" fill="url(#sunGlow)"/>
+        <circle cx="130" cy="380" r="58" fill="#fde047"/>
+        <text x="130" y="465" text-anchor="middle" fill="#fde047" font-family="Inter, sans-serif" font-size="16" font-weight="700">СОНЦЕ (G2V)</text>
+
+        <!-- 1. Меркурій -->
+        <circle cx="280" cy="380" r="10" fill="#94a3b8"/>
+        <text x="280" y="410" text-anchor="middle" fill="#e2e8f0" font-family="Inter, sans-serif" font-size="14" font-weight="700">Меркурій</text>
+        <text x="280" y="428" text-anchor="middle" fill="#00ffff" font-family="Inter, sans-serif" font-size="12">0.39 а.о. · 88 діб</text>
+
+        <!-- 2. Венера -->
+        <circle cx="360" cy="380" r="16" fill="#fbbf24"/>
+        <text x="360" y="416" text-anchor="middle" fill="#e2e8f0" font-family="Inter, sans-serif" font-size="14" font-weight="700">Венера</text>
+        <text x="360" y="434" text-anchor="middle" fill="#00ffff" font-family="Inter, sans-serif" font-size="12">0.72 а.о. · +464°C</text>
+
+        <!-- 3. Земля -->
+        <circle cx="450" cy="380" r="18" fill="#38bdf8" stroke="#4ade80" stroke-width="3"/>
+        <circle cx="476" cy="356" r="4.5" fill="#cbd5e1"/>
+        <text x="450" y="418" text-anchor="middle" fill="#ffffff" font-family="Inter, sans-serif" font-size="15" font-weight="700">Земля + Місяць</text>
+        <text x="450" y="436" text-anchor="middle" fill="#4ade80" font-family="Inter, sans-serif" font-size="12">1.00 а.о. · 365.25 діб</text>
+
+        <!-- 4. Марс -->
+        <circle cx="545" cy="380" r="13" fill="#ef4444"/>
+        <text x="545" y="414" text-anchor="middle" fill="#e2e8f0" font-family="Inter, sans-serif" font-size="14" font-weight="700">Марс</text>
+        <text x="545" y="432" text-anchor="middle" fill="#00ffff" font-family="Inter, sans-serif" font-size="12">1.52 а.о. · 2 супутники</text>
+
+        <!-- 5. Юпітер -->
+        <circle cx="675" cy="380" r="42" fill="#d97706" stroke="#fde68a" stroke-width="3"/>
+        <ellipse cx="690" cy="392" rx="10" ry="6" fill="#b91c1c"/>
+        <text x="675" y="446" text-anchor="middle" fill="#ffffff" font-family="Inter, sans-serif" font-size="16" font-weight="700">Юпітер (Газовий гігант)</text>
+        <text x="675" y="464" text-anchor="middle" fill="#fbbf24" font-family="Inter, sans-serif" font-size="12">5.20 а.о. · Маса: 318 M⊕</text>
+
+        <!-- 6. Сатурн -->
+        <ellipse cx="810" cy="380" rx="58" ry="16" fill="none" stroke="#fcd34d" stroke-width="5" transform="rotate(-18 810 380)"/>
+        <circle cx="810" cy="380" r="34" fill="#eab308"/>
+        <text x="810" y="440" text-anchor="middle" fill="#ffffff" font-family="Inter, sans-serif" font-size="15" font-weight="700">Сатурн</text>
+        <text x="810" y="458" text-anchor="middle" fill="#00ffff" font-family="Inter, sans-serif" font-size="12">9.58 а.о. · Кільця льоду</text>
+
+        <!-- 7. Уран -->
+        <circle cx="945" cy="380" r="24" fill="#67e8f9"/>
+        <text x="945" y="426" text-anchor="middle" fill="#e2e8f0" font-family="Inter, sans-serif" font-size="14" font-weight="700">Уран</text>
+        <text x="945" y="444" text-anchor="middle" fill="#00ffff" font-family="Inter, sans-serif" font-size="12">19.2 а.о. · Нахил осі 98°</text>
+
+        <!-- 8. Нептун -->
+        <circle cx="1070" cy="380" r="23" fill="#3b82f6"/>
+        <text x="1070" y="426" text-anchor="middle" fill="#e2e8f0" font-family="Inter, sans-serif" font-size="14" font-weight="700">Нептун</text>
+        <text x="1070" y="444" text-anchor="middle" fill="#00ffff" font-family="Inter, sans-serif" font-size="12">30.1 а.о. · Вітри 2100 км/год</text>
+
+        <!-- Інформаційні блоки внизу -->
+        <rect x="60" y="545" width="340" height="125" rx="14" fill="#0f172a" stroke="#00ffff" stroke-width="1.5"/>
+        <text x="82" y="578" fill="#00ffff" font-family="Montserrat, sans-serif" font-size="15" font-weight="700">1. ПЛАНЕТИ ЗЕМНОЇ ГРУПИ</text>
+        <text x="82" y="604" fill="#cbd5e1" font-family="Inter, sans-serif" font-size="13">Меркурій, Венера, Земля, Марс.</text>
+        <text x="82" y="626" fill="#94a3b8" font-family="Inter, sans-serif" font-size="13">Тверда кам'яниста поверхня, висока густина,</text>
+        <text x="82" y="646" fill="#94a3b8" font-family="Inter, sans-serif" font-size="13">невелика кількість супутників (від 0 до 2).</text>
+
+        <rect x="430" y="545" width="340" height="125" rx="14" fill="#0f172a" stroke="#b14bf4" stroke-width="1.5"/>
+        <text x="452" y="578" fill="#b14bf4" font-family="Montserrat, sans-serif" font-size="15" font-weight="700">2. ПОЯС АСТЕРОЇДІВ</text>
+        <text x="452" y="604" fill="#cbd5e1" font-family="Inter, sans-serif" font-size="13">Розташований між орбітами Марса та Юпітера.</text>
+        <text x="452" y="626" fill="#94a3b8" font-family="Inter, sans-serif" font-size="13">Найбільший об'єкт — карликова планета Церера</text>
+        <text x="452" y="646" fill="#94a3b8" font-family="Inter, sans-serif" font-size="13">(діаметр ~940 км). Відстань: 2.2–3.2 а.о.</text>
+
+        <rect x="800" y="545" width="340" height="125" rx="14" fill="#0f172a" stroke="#00ff80" stroke-width="1.5"/>
+        <text x="822" y="578" fill="#00ff80" font-family="Montserrat, sans-serif" font-size="15" font-weight="700">3. ГАЗОВІ ТА КРИЖАНІ ГІГАНТИ</text>
+        <text x="822" y="604" fill="#cbd5e1" font-family="Inter, sans-serif" font-size="13">Юпітер, Сатурн (газові), Уран, Нептун (крижані).</text>
+        <text x="822" y="626" fill="#94a3b8" font-family="Inter, sans-serif" font-size="13">Швидке обертання, потужні магнітні поля,</text>
+        <text x="822" y="646" fill="#94a3b8" font-family="Inter, sans-serif" font-size="13">системи кілець та десятки супутників.</text>
+      </svg>`;
+      return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
+    }
+
+    /* ============================================================
+       СТАН МОДУЛЯ
+       ============================================================ */
+    const state = {
+      sourceMode: 'image',                          // 'image' | 'code'
+      imageBase64: createDemoSolarSvgDataUrl(),     // поточне Base64 зображення
+      imageName: 'Демо-схема: Будова Сонячної системи',
+      lensSize: 240,                                // діаметр лінзи в пікселях (100..400)
+      active: false,                                // чи увімкнений режим «Відкритий Космос»
+      overlayTimer: null
+    };
+
+    /* ============================================================
+       1. ПЕРЕМИКАННЯ ДЖЕРЕЛА ТА ЗАВАНТАЖЕННЯ ЧЕРЕЗ FILEREADER
+       ============================================================ */
+    function setSourceMode(mode) {
+      state.sourceMode = mode;
+      const isImg = mode === 'image';
+
+      tabImageBtn.classList.toggle('active', isImg);
+      tabImageBtn.setAttribute('aria-selected', isImg);
+      tabCodeBtn.classList.toggle('active', !isImg);
+      tabCodeBtn.setAttribute('aria-selected', !isImg);
+
+      paneImage.classList.toggle('active', isImg);
+      paneCode.classList.toggle('active', !isImg);
+    }
+
+    /**
+     * Завантаження зображення через FileReader у формат Base64
+     */
+    function handleImageFile(file) {
+      if (!file || !file.type.startsWith('image/')) return;
+
+      const reader = new FileReader();
+      reader.onload = e => {
+        state.imageBase64 = e.target.result;
+        state.imageName = file.name;
+        updateImagePreviewUI();
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function updateImagePreviewUI() {
+      if (state.imageBase64) {
+        previewThumb.src = state.imageBase64;
+        previewName.textContent = state.imageName;
+        imagePreviewBar.classList.add('visible');
+      } else {
+        imagePreviewBar.classList.remove('visible');
+      }
+    }
+
+    /* ============================================================
+       2. НАЛАШТУВАННЯ РОЗМІРУ ЛІНЗИ ТА ОНОВЛЕННЯ CSS CUSTOM PROPERTIES
+       ============================================================ */
+    function updateLensSize(px) {
+      const clamped = Math.max(100, Math.min(400, Number(px) || 240));
+      state.lensSize = clamped;
+      lensSizeSlider.value = String(clamped);
+      lensSizeValue.textContent = clamped;
+
+      const root = document.documentElement;
+      root.style.setProperty('--lens-size', `${clamped}px`);
+      root.style.setProperty('--lens-radius', `${clamped / 2}px`);
+    }
+
+    function updateLensCoordinates(x, y) {
+      const root = document.documentElement;
+      root.style.setProperty('--x', `${x}px`);
+      root.style.setProperty('--y', `${y}px`);
+    }
+
+    /* ============================================================
+       3. ПОБУДОВА ДВОХ ШАРІВ ТА АКТИВАЦІЯ ЛІНЗИ
+       ============================================================ */
+    function escapeHtml(str) {
+      return str.replace(/[&<>"']/g, m => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+      }[m]));
+    }
+
+    function buildLayerMarkup() {
+      if (state.sourceMode === 'image') {
+        const src = state.imageBase64 || createDemoSolarSvgDataUrl();
+        return `<img class="stage-image" src="${src}" alt="Навчальна схема">`;
+      } else {
+        const rawCode = codeInput.value.trim() || DEMO_CODE;
+        return `
+          <div class="stage-code-card">
+            <div class="code-card-head">
+              <div class="code-dots"><span></span><span></span><span></span></div>
+              <span>EduNova · Фокус-Аналіз Коду та Тексту</span>
+            </div>
+            <pre class="stage-pre"><code>${escapeHtml(rawCode)}</code></pre>
+          </div>
+        `;
+      }
+    }
+
+    function activateLens() {
+      // Генеруємо абсолютно однакову розмітку для нижнього (розмитого) і верхнього (чіткого) шарів
+      const markup = buildLayerMarkup();
+      stageBase.innerHTML = markup;
+      stageLensZoom.innerHTML = markup;
+
+      // Ставимо початкову позицію лінзи по центру екрана
+      updateLensCoordinates(window.innerWidth / 2, window.innerHeight / 2);
+
+      state.active = true;
+      document.body.classList.add('lens-active');
+
+      // Показуємо підказку «Натисніть ESC для виходу» на 3 секунди
+      escOverlay.classList.add('visible');
+      clearTimeout(state.overlayTimer);
+      state.overlayTimer = setTimeout(() => {
+        escOverlay.classList.remove('visible');
+      }, 3000);
+    }
+
+    function deactivateLens() {
+      if (!state.active) return;
+      state.active = false;
+      document.body.classList.remove('lens-active');
+      escOverlay.classList.remove('visible');
+      clearTimeout(state.overlayTimer);
+    }
+
+    /* ============================================================
+       4. ОБРОБНИКИ ПОДІЙ
+       ============================================================ */
+    tabImageBtn.addEventListener('click', () => setSourceMode('image'));
+    tabCodeBtn.addEventListener('click', () => setSourceMode('code'));
+
+    imageInput.addEventListener('change', e => {
+      if (e.target.files && e.target.files[0]) {
+        handleImageFile(e.target.files[0]);
+      }
+    });
+
+    dropzone.addEventListener('dragover', e => {
+      e.preventDefault();
+      dropzone.classList.add('dragover');
+    });
+    dropzone.addEventListener('dragleave', () => {
+      dropzone.classList.remove('dragover');
+    });
+    dropzone.addEventListener('drop', e => {
+      e.preventDefault();
+      dropzone.classList.remove('dragover');
+      if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+        handleImageFile(e.dataTransfer.files[0]);
+      }
+    });
+
+    demoSchemeBtn.addEventListener('click', () => {
+      state.imageBase64 = createDemoSolarSvgDataUrl();
+      state.imageName = 'Демо-схема: Будова Сонячної системи';
+      updateImagePreviewUI();
+    });
+
+    replaceImageBtn.addEventListener('click', () => {
+      imageInput.value = '';
+      state.imageBase64 = createDemoSolarSvgDataUrl();
+      state.imageName = 'Демо-схема: Будова Сонячної системи';
+      updateImagePreviewUI();
+    });
+
+    demoCodeBtn.addEventListener('click', () => {
+      codeInput.value = DEMO_CODE;
+    });
+    clearCodeBtn.addEventListener('click', () => {
+      codeInput.value = '';
+      codeInput.focus();
+    });
+
+    lensSizeSlider.addEventListener('input', e => {
+      updateLensSize(e.target.value);
+    });
+
+    activateBtn.addEventListener('click', activateLens);
+    exitLensBtn.addEventListener('click', deactivateLens);
+
+    // Швидке оновлення координат --x та --y при русі миші у другому режимі
+    document.addEventListener('mousemove', e => {
+      if (!state.active) return;
+      updateLensCoordinates(e.clientX, e.clientY);
+    }, { passive: true });
+
+    // Підтримка сенсорних екранів та інтерактивних дощок
+    document.addEventListener('touchmove', e => {
+      if (!state.active || !e.touches.length) return;
+      const t = e.touches[0];
+      updateLensCoordinates(t.clientX, t.clientY);
+    }, { passive: true });
+
+    // Зміна діаметра лінзи коліщатком миші безпосередньо під час демонстрації
+    document.addEventListener('wheel', e => {
+      if (!state.active) return;
+      const delta = e.deltaY < 0 ? 15 : -15;
+      updateLensSize(state.lensSize + delta);
+    }, { passive: true });
+
+    // Вихід за клавішею Escape
+    document.addEventListener('keydown', e => {
+      if (state.active && e.key === 'Escape') {
+        e.preventDefault();
+        deactivateLens();
+      }
+    });
+
+    /* ============================================================
+       ІНІЦІАЛІЗАЦІЯ
+       ============================================================ */
+    codeInput.value = DEMO_CODE;
+    updateImagePreviewUI();
+    updateLensSize(lensSizeSlider.value);
+  </script>
+</body>
+</html>

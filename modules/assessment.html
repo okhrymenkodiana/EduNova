@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Сузір'я Оцінювання · Конструктор формувального оцінювання · EduNova</title>
+  <meta name="theme-color" content="#050b14">
+  <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
+
+  <!-- Шрифт Inter та іконки FontAwesome -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <style>
+    /* ============================================================
+       EDUNOVA DESIGN SYSTEM — ЗМІННІ КОЛЬОРІВ ТА БАЗОВІ НАЛАШТУВАННЯ
+       ============================================================ */
+    :root {
+      --bg-space: #050b14;
+      --bg-deep: #0a0b10;
+      --cyan: #00ffff;
+      --purple: #b14bf4;
+      --emerald: #00ff80;
+      --amber: #ffb800;
+      --text: #F3F4F6;
+      --text-secondary: #D1D5DB;
+      --muted: #8d97b5;
+      --glass: rgba(15, 23, 42, 0.5);
+      --glass-input: rgba(10, 15, 30, 0.65);
+      --border: rgba(255, 255, 255, 0.1);
+      --radius-lg: 16px;
+      --radius-md: 14px;
+      --shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', 'Roboto', sans-serif;
+      color: var(--text);
+      min-height: 100vh;
+      background-color: var(--bg-space);
+      background-image:
+        radial-gradient(1.5px 1.5px at 12% 18%, rgba(255, 255, 255, 0.75) 50%, transparent 100%),
+        radial-gradient(1px 1px at 28% 62%, rgba(0, 255, 255, 0.65) 50%, transparent 100%),
+        radial-gradient(1.5px 1.5px at 45% 32%, rgba(255, 255, 255, 0.55) 50%, transparent 100%),
+        radial-gradient(2px 2px at 68% 14%, rgba(177, 75, 244, 0.7) 50%, transparent 100%),
+        radial-gradient(1px 1px at 82% 48%, rgba(255, 255, 255, 0.65) 50%, transparent 100%),
+        radial-gradient(1.5px 1.5px at 91% 82%, rgba(0, 255, 128, 0.6) 50%, transparent 100%),
+        radial-gradient(1px 1px at 19% 88%, rgba(255, 255, 255, 0.5) 50%, transparent 100%),
+        radial-gradient(1.5px 1.5px at 56% 76%, rgba(0, 255, 255, 0.5) 50%, transparent 100%),
+        radial-gradient(850px 550px at 15% 15%, rgba(177, 75, 244, 0.14), transparent 65%),
+        radial-gradient(800px 500px at 85% 85%, rgba(0, 255, 255, 0.11), transparent 65%),
+        radial-gradient(600px 450px at 50% 50%, rgba(0, 255, 128, 0.05), transparent 70%),
+        linear-gradient(180deg, var(--bg-space) 0%, var(--bg-deep) 100%);
+      background-size: 320px 320px, 410px 410px, 270px 270px, 520px 520px, 370px 370px, 460px 460px, 290px 290px, 490px 490px, 100% 100%, 100% 100%, 100% 100%, 100% 100%;
+      background-attachment: fixed;
+      padding: 28px 20px 48px;
+      line-height: 1.5;
+    }
+
+    .container { max-width: 1180px; margin: 0 auto; }
+
+    /* ===== Навігація: Кнопка «Назад до Хабу» ===== */
+    .top-nav {
+      display: flex;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+    .back-hub {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 18px;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      text-decoration: none;
+      background: var(--glass);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      box-shadow: var(--shadow);
+      transition: all 0.3s ease;
+    }
+    .back-hub i {
+      color: var(--cyan);
+      transition: transform 0.3s ease;
+    }
+    .back-hub:hover, .back-hub:focus-visible {
+      border-color: var(--cyan);
+      color: #fff;
+      box-shadow: 0 0 20px rgba(0, 255, 255, 0.35), var(--shadow);
+      transform: translateY(-2px);
+      outline: none;
+    }
+    .back-hub:hover i {
+      transform: translateX(-4px);
+    }
+
+    /* ===== Шапка ===== */
+    header { margin-bottom: 28px; }
+    .badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-size: 12px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase;
+      color: var(--cyan);
+      background: rgba(0, 255, 255, 0.08);
+      border: 1px solid rgba(0, 255, 255, 0.28);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      padding: 6px 14px; border-radius: 999px; margin-bottom: 12px;
+    }
+    h1 {
+      font-size: clamp(28px, 4vw, 40px);
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: #ffffff;
+      text-shadow: 0 0 22px rgba(0, 255, 255, 0.45), 0 0 40px rgba(177, 75, 244, 0.25);
+    }
+    .subtitle { color: var(--text-secondary); margin-top: 6px; font-size: 16px; }
+
+    /* ===== Сітка з двох колонок ===== */
+    .layout {
+      display: grid;
+      grid-template-columns: 1.15fr 1fr;
+      gap: 24px;
+      align-items: start;
+    }
+
+    /* ===== Картки (Glassmorphism) ===== */
+    .card {
+      background: var(--glass);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow);
+      padding: 26px;
+    }
+    .card + .card { margin-top: 20px; }
+
+    .card-title {
+      font-size: 17px; font-weight: 600;
+      color: #ffffff;
+      text-shadow: 0 0 14px rgba(0, 255, 255, 0.35);
+      display: flex; align-items: center; gap: 10px;
+      margin-bottom: 16px;
+    }
+    .card-title i { font-size: 16px; color: var(--cyan); filter: drop-shadow(0 0 8px rgba(0, 255, 255, 0.6)); }
+
+    /* ===== Вибір учня ===== */
+    label.field-label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+    }
+
+    select, input[type="text"] {
+      width: 100%;
+      font-family: inherit; font-size: 15px; color: var(--text);
+      background-color: var(--glass-input);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      border-radius: var(--radius-md);
+      padding: 12px 16px;
+      outline: none;
+      transition: border-color .25s ease, box-shadow .25s ease, background-color .25s ease;
+    }
+    select {
+      appearance: none; -webkit-appearance: none; cursor: pointer; padding-right: 42px;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2300ffff' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 15px center;
+    }
+    select option { background: #0a1122; color: var(--text); }
+    input[type="text"]::placeholder { color: var(--muted); }
+    select:hover, input[type="text"]:hover { border-color: rgba(0, 255, 255, 0.4); }
+    select:focus, input[type="text"]:focus {
+      border-color: var(--cyan);
+      box-shadow: 0 0 0 3px rgba(0, 255, 255, 0.2), 0 0 18px rgba(0, 255, 255, 0.3);
+    }
+
+    .custom-student { display: none; margin-top: 14px; gap: 12px; }
+    .custom-student.visible { display: grid; grid-template-columns: 1fr 150px; }
+
+    /* ===== Категорії та теги ===== */
+    .category + .category { margin-top: 22px; }
+    .category-head {
+      display: flex; align-items: center; gap: 10px;
+      font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 12px;
+    }
+    .category-icon {
+      width: 34px; height: 34px; border-radius: 10px;
+      display: grid; place-items: center; font-size: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+    }
+    .tags { display: flex; flex-wrap: wrap; gap: 10px; }
+
+    /* Тег-«пігулка» */
+    .tag {
+      font-family: inherit; font-size: 14px; font-weight: 500;
+      color: var(--text-secondary);
+      background: rgba(15, 23, 42, 0.65);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 999px;
+      padding: 9px 18px;
+      cursor: pointer;
+      transition: transform .2s ease, box-shadow .25s ease, background-color .25s ease, color .25s ease, border-color .25s ease;
+    }
+    .tag:hover {
+      transform: translateY(-2px);
+      color: #ffffff;
+    }
+    .tag:active { transform: scale(0.96); }
+    .tag:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+    .tag.active::before {
+      content: "\f00c"; font-family: "Font Awesome 6 Free"; font-weight: 900;
+      font-size: 11px; margin-right: 7px;
+    }
+
+    /* Космічні неонові теми категорій */
+    .theme-blue .category-icon { background: rgba(0, 255, 255, 0.12); color: var(--cyan); border-color: rgba(0, 255, 255, 0.35); box-shadow: 0 0 14px rgba(0, 255, 255, 0.2); }
+    .theme-blue .tag:hover { border-color: rgba(0, 255, 255, 0.5); box-shadow: 0 0 14px rgba(0, 255, 255, 0.2); }
+    .theme-blue .tag.active {
+      background: rgba(0, 255, 255, 0.18);
+      color: #ffffff;
+      border-color: var(--cyan);
+      box-shadow: 0 0 18px rgba(0, 255, 255, 0.4), inset 0 0 12px rgba(0, 255, 255, 0.15);
+    }
+
+    .theme-green .category-icon { background: rgba(0, 255, 128, 0.12); color: var(--emerald); border-color: rgba(0, 255, 128, 0.35); box-shadow: 0 0 14px rgba(0, 255, 128, 0.2); }
+    .theme-green .tag:hover { border-color: rgba(0, 255, 128, 0.5); box-shadow: 0 0 14px rgba(0, 255, 128, 0.2); }
+    .theme-green .tag.active {
+      background: rgba(0, 255, 128, 0.18);
+      color: #ffffff;
+      border-color: var(--emerald);
+      box-shadow: 0 0 18px rgba(0, 255, 128, 0.4), inset 0 0 12px rgba(0, 255, 128, 0.15);
+    }
+
+    .theme-purple .category-icon { background: rgba(177, 75, 244, 0.14); color: var(--purple); border-color: rgba(177, 75, 244, 0.4); box-shadow: 0 0 14px rgba(177, 75, 244, 0.22); }
+    .theme-purple .tag:hover { border-color: rgba(177, 75, 244, 0.55); box-shadow: 0 0 14px rgba(177, 75, 244, 0.22); }
+    .theme-purple .tag.active {
+      background: rgba(177, 75, 244, 0.22);
+      color: #ffffff;
+      border-color: var(--purple);
+      box-shadow: 0 0 18px rgba(177, 75, 244, 0.45), inset 0 0 12px rgba(177, 75, 244, 0.18);
+    }
+
+    .theme-orange .category-icon { background: rgba(255, 184, 0, 0.12); color: var(--amber); border-color: rgba(255, 184, 0, 0.35); box-shadow: 0 0 14px rgba(255, 184, 0, 0.2); }
+    .theme-orange .tag:hover { border-color: rgba(255, 184, 0, 0.55); box-shadow: 0 0 14px rgba(255, 184, 0, 0.2); }
+    .theme-orange .tag.active {
+      background: rgba(255, 184, 0, 0.18);
+      color: #ffffff;
+      border-color: var(--amber);
+      box-shadow: 0 0 18px rgba(255, 184, 0, 0.4), inset 0 0 12px rgba(255, 184, 0, 0.15);
+    }
+
+    /* ===== Права колонка (результат) ===== */
+    .result-col { position: sticky; top: 24px; }
+
+    .result-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+    .counter {
+      font-size: 13px; font-weight: 600; color: var(--cyan);
+      background: rgba(0, 255, 255, 0.1);
+      border: 1px solid rgba(0, 255, 255, 0.3);
+      padding: 4px 12px; border-radius: 999px;
+      box-shadow: 0 0 12px rgba(0, 255, 255, 0.15);
+    }
+
+    textarea#result {
+      width: 100%; min-height: 280px; resize: vertical;
+      font-family: inherit; font-size: 16px; line-height: 1.75; color: var(--text);
+      background: var(--glass-input);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      border-radius: var(--radius-md);
+      padding: 22px;
+      outline: none;
+      transition: border-color .25s ease, box-shadow .25s ease;
+    }
+    textarea#result::placeholder { color: var(--muted); }
+    textarea#result:focus {
+      border-color: var(--purple);
+      box-shadow: 0 0 0 3px rgba(177, 75, 244, 0.22), 0 0 22px rgba(177, 75, 244, 0.3);
+    }
+    .hint { font-size: 12.5px; color: var(--text-secondary); margin-top: 10px; opacity: 0.85; }
+    .hint i { color: var(--cyan); margin-right: 4px; }
+
+    .actions { display: flex; gap: 12px; margin-top: 18px; flex-wrap: wrap; }
+    .btn {
+      font-family: inherit; font-size: 15px; font-weight: 600;
+      display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+      border: none; border-radius: 14px; padding: 13px 22px; cursor: pointer;
+      transition: transform .2s ease, box-shadow .25s ease, background .25s ease, border-color .25s ease;
+    }
+    .btn:hover { transform: translateY(-2px); }
+    .btn:active { transform: scale(0.97); }
+    .btn:focus-visible { outline: 2px solid var(--cyan); outline-offset: 3px; }
+
+    .btn-primary {
+      flex: 1;
+      background: linear-gradient(120deg, var(--cyan), var(--purple));
+      color: #050b14;
+      font-weight: 700;
+      box-shadow: 0 0 24px rgba(0, 255, 255, 0.35), 0 0 40px rgba(177, 75, 244, 0.25);
+    }
+    .btn-primary:hover {
+      box-shadow: 0 0 34px rgba(0, 255, 255, 0.55), 0 0 55px rgba(177, 75, 244, 0.45);
+    }
+    .btn-primary.copied {
+      background: linear-gradient(120deg, var(--emerald), var(--cyan));
+      color: #050b14;
+      box-shadow: 0 0 30px rgba(0, 255, 128, 0.5);
+    }
+    .btn-ghost {
+      background: rgba(15, 23, 42, 0.6);
+      color: var(--text);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+    }
+    .btn-ghost:hover {
+      border-color: var(--purple);
+      box-shadow: 0 0 18px rgba(177, 75, 244, 0.35);
+    }
+
+    /* ===== Адаптивність ===== */
+    @media (max-width: 900px) {
+      .layout { grid-template-columns: 1fr; }
+      .result-col { position: static; }
+    }
+    @media (max-width: 480px) {
+      body { padding: 20px 12px 32px; }
+      .card { padding: 20px; }
+      .custom-student.visible { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <!-- Навігація назад до Хабу -->
+    <nav class="top-nav" aria-label="Навігація платформи">
+      <a class="back-hub" href="../index.html">
+        <i class="fa-solid fa-arrow-left"></i>
+        <span>← Назад до Хабу</span>
+      </a>
+    </nav>
+
+    <header>
+      <span class="badge"><i class="fa-solid fa-star"></i> EduNova · Сузір'я Оцінювання</span>
+      <h1>Конструктор формувального оцінювання</h1>
+      <p class="subtitle">Оберіть учня та характеристики — коментар сформується автоматично.</p>
+    </header>
+
+    <main class="layout">
+
+      <!-- ===== Ліва колонка: панель керування ===== -->
+      <section aria-label="Панель керування">
+        <div class="card">
+          <h2 class="card-title"><i class="fa-solid fa-user-astronaut"></i> Учень</h2>
+          <label class="field-label" for="studentSelect">Оберіть учня зі списку</label>
+          <select id="studentSelect"></select>
+
+          <!-- Поля для довільного імені (з'являються при виборі «Інше ім'я») -->
+          <div class="custom-student" id="customStudent">
+            <div>
+              <label class="field-label" for="customName">Ім'я учня</label>
+              <input type="text" id="customName" placeholder="Наприклад, Ірина">
+            </div>
+            <div>
+              <label class="field-label" for="customGender">Стать</label>
+              <select id="customGender">
+                <option value="f">Дівчинка</option>
+                <option value="m">Хлопчик</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Категорії з тегами будуються скриптом -->
+        <div class="card" id="categoriesCard">
+          <h2 class="card-title"><i class="fa-solid fa-tags"></i> Характеристики</h2>
+          <div id="categories"></div>
+        </div>
+      </section>
+
+      <!-- ===== Права колонка: результат ===== -->
+      <section class="result-col" aria-label="Результат">
+        <div class="card">
+          <div class="result-head">
+            <h2 class="card-title" style="margin:0"><i class="fa-solid fa-comment-dots"></i> Коментар для учня</h2>
+            <span class="counter" id="counter">Обрано: 0</span>
+          </div>
+
+          <textarea id="result" placeholder="Тут з'явиться коментар. Оберіть учня та кілька тегів ліворуч…"></textarea>
+          <p class="hint"><i class="fa-regular fa-pen-to-square"></i> Текст можна редагувати вручну перед копіюванням.</p>
+
+          <div class="actions">
+            <button class="btn btn-primary" id="copyBtn" type="button">
+              <i class="fa-regular fa-copy"></i><span>Скопіювати текст</span>
+            </button>
+            <button class="btn btn-ghost" id="resetBtn" type="button">
+              <i class="fa-solid fa-rotate-left"></i><span>Очистити</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <script>
+    /* ============================================================
+       ДАНІ
+       ============================================================ */
+
+    // Тестові учні (m — хлопчик, f — дівчинка; потрібно для правильних закінчень)
+    const STUDENTS = [
+      { name: 'Олена Коваленко',   gender: 'f' },
+      { name: 'Максим Шевченко',   gender: 'm' },
+      { name: 'Софія Бондаренко',  gender: 'f' },
+      { name: 'Андрій Мельник',    gender: 'm' }
+    ];
+
+    /* Словник тегів.
+       Кожен тег має «clause» — функцію, що повертає частину речення
+       (дієслово + доповнення) з урахуванням роду: g(чоловічий, жіночий).
+       negative: true — тег, що вказує на зону для розвитку. */
+    const CATEGORIES = [
+      {
+        id: 'activity', title: 'Активність', theme: 'blue', icon: 'fa-bolt',
+        tags: [
+          { id: 'active',   label: 'Активний на уроці', clause: g => `виявив${g('', 'ла')} високу активність на уроці` },
+          { id: 'thinks',   label: 'Добре міркує',      clause: g => `демонструє чудове логічне мислення при розв'язанні завдань` },
+          { id: 'answers',  label: 'Охоче відповідає',  clause: g => `охоче відповідає на запитання та долучається до обговорень` },
+          { id: 'motivate', label: 'Потребує мотивації', negative: true, clause: g => `потребує додаткової мотивації до участі в роботі класу` }
+        ]
+      },
+      {
+        id: 'attention', title: 'Уважність', theme: 'green', icon: 'fa-eye',
+        tags: [
+          { id: 'listens',  label: 'Уважно слухає',     clause: g => `уважно слухає пояснення вчителя та відповіді однокласників` },
+          { id: 'focus',    label: 'Зосереджено працює', clause: g => `вміє зосередитися на завданні та доводить його до кінця` },
+          { id: 'details',  label: 'Помічає деталі',    clause: g => `помічає важливі деталі та закономірності` },
+          { id: 'needAttn', label: 'Потребує уваги',    negative: true, clause: g => `інколи відволікається, тому потребує додаткової уваги з боку вчителя` }
+        ]
+      },
+      {
+        id: 'creativity', title: 'Творчість', theme: 'purple', icon: 'fa-palette',
+        tags: [
+          { id: 'ideas',    label: 'Оригінальні ідеї',  clause: g => `пропонує оригінальні та нестандартні ідеї` },
+          { id: 'imagine',  label: 'Багата уява',       clause: g => `виявляє багату уяву у творчих завданнях` },
+          { id: 'projects', label: 'Цікаві проєкти',    clause: g => `створює цікаві та неповторні проєкти` },
+          { id: 'initiate', label: 'Ініціативний',      clause: g => `проявляє ініціативу та шукає власні шляхи розв'язання` }
+        ]
+      },
+      {
+        id: 'homework', title: 'Домашнє завдання', theme: 'orange', icon: 'fa-book-open',
+        tags: [
+          { id: 'diligent', label: 'Старанно працює',   clause: g => `старанно й відповідально виконує домашні завдання` },
+          { id: 'ontime',   label: 'Здає вчасно',       clause: g => `своєчасно виконує та здає роботи` },
+          { id: 'neat',     label: 'Охайне оформлення', clause: g => `ретельно оформлює роботи та тримає зошит в охайному стані` },
+          { id: 'irregular',label: 'Нерегулярно виконує', negative: true, clause: g => `виконує домашні завдання нерегулярно, тому варто приділити цьому більше уваги` }
+        ]
+      }
+    ];
+
+    // Зв'язки між реченнями (щоб текст не звучав шаблонно)
+    const CONNECTORS = ['Крім того, ', 'Також ', 'Варто зазначити, що ', 'До того ж '];
+
+    /* ============================================================
+       СТАН
+       ============================================================ */
+    const selected = new Set();   // множина id обраних тегів
+    let manualEdit = false;       // чи редагував вчитель текст вручну
+
+    /* ============================================================
+       ЕЛЕМЕНТИ DOM
+       ============================================================ */
+    const studentSelect = document.getElementById('studentSelect');
+    const customBox     = document.getElementById('customStudent');
+    const customName    = document.getElementById('customName');
+    const customGender  = document.getElementById('customGender');
+    const categoriesEl  = document.getElementById('categories');
+    const resultEl      = document.getElementById('result');
+    const counterEl     = document.getElementById('counter');
+    const copyBtn       = document.getElementById('copyBtn');
+    const resetBtn      = document.getElementById('resetBtn');
+
+    /* ============================================================
+       ПОБУДОВА ІНТЕРФЕЙСУ
+       ============================================================ */
+
+    // Заповнюємо випадаючий список учнів
+    function renderStudents() {
+      studentSelect.innerHTML =
+        STUDENTS.map((s, i) => `<option value="${i}">${s.name}</option>`).join('') +
+        `<option value="custom">✎ Інше ім'я…</option>`;
+    }
+
+    // Будуємо категорії з тегами-«пігулками»
+    function renderCategories() {
+      categoriesEl.innerHTML = CATEGORIES.map(cat => `
+        <div class="category theme-${cat.theme}">
+          <div class="category-head">
+            <span class="category-icon"><i class="fa-solid ${cat.icon}"></i></span>
+            ${cat.title}
+          </div>
+          <div class="tags">
+            ${cat.tags.map(t => `
+              <button type="button" class="tag" data-id="${t.id}" aria-pressed="false">${t.label}</button>
+            `).join('')}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    /* ============================================================
+       ЛОГІКА
+       ============================================================ */
+
+    // Повертає поточного учня: { name, gender }
+    function getStudent() {
+      if (studentSelect.value === 'custom') {
+        return { name: customName.value.trim() || 'Учень', gender: customGender.value };
+      }
+      return STUDENTS[Number(studentSelect.value)];
+    }
+
+    // Перше слово повного імені (Олена Коваленко -> Олена) — для природнішого тексту
+    function firstName(full) { return full.split(' ')[0]; }
+
+    // З'єднує фрази: «а, б та в»
+    function joinClauses(list) {
+      if (list.length <= 1) return list[0] || '';
+      return list.slice(0, -1).join(', ') + ' та ' + list[list.length - 1];
+    }
+
+    // Головна функція: збирає зв'язний коментар з обраних тегів
+    function generateComment() {
+      const student = getStudent();
+      const isMale  = student.gender === 'm';
+      const g       = (m, f) => (isMale ? m : f);   // вибір закінчення за родом
+      const name    = firstName(student.name);
+      const pronoun = isMale ? 'він' : 'вона';
+
+      const sentences = [];
+      let hasNegative = false;
+
+      CATEGORIES.forEach(cat => {
+        const chosen = cat.tags.filter(t => selected.has(t.id));
+        if (!chosen.length) return;
+        if (chosen.some(t => t.negative)) hasNegative = true;
+
+        // Позитивні фрази ставимо першими, зони росту — в кінці речення
+        chosen.sort((a, b) => Number(!!a.negative) - Number(!!b.negative));
+        const body = joinClauses(chosen.map(t => t.clause(g)));
+
+        if (!sentences.length) {
+          sentences.push(`${name} ${body}.`);                       // перше речення — з імені
+        } else {
+          const conn = CONNECTORS[(sentences.length - 1) % CONNECTORS.length];
+          sentences.push(`${conn}${pronoun} ${body}.`);             // наступні — зі сполучником
+        }
+      });
+
+      if (!sentences.length) return '';
+
+      // Завершальне побажання
+      sentences.push(hasNegative
+        ? `Впевнені, що за підтримки вчителя й родини результати стануть ще кращими!`
+        : `Так тримати — бажаємо подальших успіхів!`);
+
+      return sentences.join(' ');
+    }
+
+    // Оновлення правої колонки
+    function update() {
+      resultEl.value = generateComment();
+      counterEl.textContent = `Обрано: ${selected.size}`;
+    }
+
+    // Клік по тегу: додаємо/видаляємо з масиву обраних
+    categoriesEl.addEventListener('click', e => {
+      const btn = e.target.closest('.tag');
+      if (!btn) return;
+      const id = btn.dataset.id;
+
+      if (selected.has(id)) selected.delete(id); else selected.add(id);
+
+      const isActive = selected.has(id);
+      btn.classList.toggle('active', isActive);
+      btn.setAttribute('aria-pressed', isActive);
+      update();
+    });
+
+    // Зміна учня / власного імені / статі — перегенеруємо текст
+    studentSelect.addEventListener('change', () => {
+      const isCustom = studentSelect.value === 'custom';
+      customBox.classList.toggle('visible', isCustom);
+      if (isCustom) customName.focus();
+      update();
+    });
+    customName.addEventListener('input', update);
+    customGender.addEventListener('change', update);
+
+    // Копіювання тексту (з резервним варіантом для старих браузерів)
+    copyBtn.addEventListener('click', async () => {
+      const text = resultEl.value;
+      if (!text) return;
+
+      try {
+        await navigator.clipboard.writeText(text);
+      } catch (err) {
+        resultEl.select();
+        document.execCommand('copy');
+      }
+
+      // Тимчасово змінюємо вигляд кнопки на 2 секунди
+      const label = copyBtn.querySelector('span');
+      const icon  = copyBtn.querySelector('i');
+      copyBtn.classList.add('copied');
+      label.textContent = 'Скопійовано!';
+      icon.className = 'fa-solid fa-check';
+
+      setTimeout(() => {
+        copyBtn.classList.remove('copied');
+        label.textContent = 'Скопіювати текст';
+        icon.className = 'fa-regular fa-copy';
+      }, 2000);
+    });
+
+    // Очищення: скидаємо всі обрані теги
+    resetBtn.addEventListener('click', () => {
+      selected.clear();
+      document.querySelectorAll('.tag.active').forEach(b => {
+        b.classList.remove('active');
+        b.setAttribute('aria-pressed', 'false');
+      });
+      update();
+    });
+
+    /* ============================================================
+       ІНІЦІАЛІЗАЦІЯ
+       ============================================================ */
+    renderStudents();
+    renderCategories();
+    update();
+  </script>
+</body>
+</html>

@@ -1,0 +1,1218 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Фокус-Промінь · Космічний Телесуфлер · EduNova</title>
+  <meta name="theme-color" content="#0B0F19">
+  <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
+
+  <!-- Шрифти Inter та Montserrat + іконки FontAwesome -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Montserrat:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <style>
+    /* ============================================================
+       1. ДИЗАЙН-СИСТЕМА EDUNOVA (ЗМІННІ ТА БАЗОВІ СТИЛІ)
+       ============================================================ */
+    :root {
+      --bg-space: #0B0F19;
+      --bg-deep: #050b14;
+      --purple: #8A2BE2;
+      --purple-neon: #b14bf4;
+      --cyan: #00BFFF;
+      --cyan-neon: #00ffff;
+      --emerald-neon: #00ff80;
+      --text: #F3F4F6;
+      --text-secondary: #D1D5DB;
+      --muted: #8d97b5;
+      --glass: rgba(15, 23, 42, 0.55);
+      --glass-card: rgba(255, 255, 255, 0.05);
+      --glass-input: rgba(8, 12, 24, 0.72);
+      --border: rgba(255, 255, 255, 0.12);
+      --radius: 16px;
+      --shadow: 0 8px 32px rgba(0, 0, 0, 0.55);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      width: 100%;
+      min-height: 100vh;
+      background-color: var(--bg-space);
+      font-family: 'Inter', 'Montserrat', sans-serif;
+      color: var(--text);
+      overflow-x: hidden;
+      line-height: 1.5;
+    }
+
+    body.broadcasting {
+      overflow: hidden;
+      user-select: none;
+    }
+
+    /* ===== Фоновий Canvas із зірками ===== */
+    #starCanvas {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 0;
+      pointer-events: none;
+      display: block;
+    }
+
+    /* ============================================================
+       РЕЖИМ 1: «КОМАНДНИЙ ПУНКТ» (НАЛАШТУВАННЯ)
+       ============================================================ */
+    .command-center {
+      position: relative;
+      z-index: 10;
+      max-width: 920px;
+      margin: 0 auto;
+      padding: 28px 20px 48px;
+      transition: opacity 0.45s ease, transform 0.45s ease, visibility 0.45s;
+    }
+
+    body.broadcasting .command-center {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transform: scale(0.96);
+    }
+
+    /* Навігація: Повернутися до навігатора */
+    .top-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .back-hub {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 18px;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      text-decoration: none;
+      background: var(--glass);
+      backdrop-filter: blur(15px);
+      -webkit-backdrop-filter: blur(15px);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      box-shadow: var(--shadow);
+      transition: all 0.3s ease;
+    }
+    .back-hub i {
+      color: var(--cyan-neon);
+      transition: transform 0.3s ease;
+    }
+    .back-hub:hover, .back-hub:focus-visible {
+      border-color: var(--cyan-neon);
+      color: #ffffff;
+      box-shadow: 0 0 22px rgba(0, 255, 255, 0.38), var(--shadow);
+      transform: translateY(-2px);
+      outline: none;
+    }
+    .back-hub:hover i {
+      transform: translateX(-4px);
+    }
+
+    /* Заголовок модуля */
+    header {
+      margin-bottom: 24px;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--cyan-neon);
+      background: rgba(0, 191, 255, 0.1);
+      border: 1px solid rgba(0, 255, 255, 0.28);
+      padding: 6px 14px;
+      border-radius: 999px;
+      margin-bottom: 12px;
+    }
+    h1 {
+      font-family: 'Montserrat', 'Inter', sans-serif;
+      font-size: clamp(28px, 4.2vw, 40px);
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: #ffffff;
+      text-shadow: 0 0 24px rgba(0, 191, 255, 0.5), 0 0 44px rgba(138, 43, 226, 0.35);
+    }
+    .subtitle {
+      color: var(--text-secondary);
+      margin-top: 6px;
+      font-size: 15.5px;
+      max-width: 680px;
+    }
+
+    /* Головна панель (Glassmorphism) */
+    .glass-panel {
+      background: var(--glass);
+      backdrop-filter: blur(15px);
+      -webkit-backdrop-filter: blur(15px);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow), 0 0 50px rgba(138, 43, 226, 0.12);
+      padding: 28px;
+    }
+
+    .panel-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .field-label {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+    }
+    .field-label i {
+      color: var(--cyan-neon);
+      filter: drop-shadow(0 0 6px rgba(0, 255, 255, 0.6));
+    }
+
+    .toolbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-mini {
+      font-family: inherit;
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 6px 12px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.25s ease;
+    }
+    .btn-mini:hover {
+      color: #ffffff;
+      border-color: var(--cyan-neon);
+      box-shadow: 0 0 14px rgba(0, 191, 255, 0.3);
+    }
+
+    /* Текстове поле */
+    textarea#sourceText {
+      width: 100%;
+      min-height: 240px;
+      resize: vertical;
+      font-family: 'Inter', sans-serif;
+      font-size: 16px;
+      line-height: 1.7;
+      color: var(--text);
+      background: var(--glass-input);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      border-radius: 14px;
+      padding: 18px 20px;
+      outline: none;
+      transition: border-color 0.25s ease, box-shadow 0.25s ease;
+    }
+    textarea#sourceText::placeholder {
+      color: var(--muted);
+    }
+    textarea#sourceText:hover {
+      border-color: rgba(0, 191, 255, 0.4);
+    }
+    textarea#sourceText:focus {
+      border-color: var(--cyan-neon);
+      box-shadow: 0 0 0 3px rgba(0, 191, 255, 0.2), 0 0 24px rgba(0, 191, 255, 0.25);
+    }
+
+    /* Статистика тексту під полем */
+    .text-stats {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 10px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .text-stats b {
+      color: var(--text-secondary);
+      font-weight: 600;
+    }
+
+    /* Блок налаштування швидкості (WPM Slider) */
+    .speed-card {
+      margin-top: 24px;
+      padding: 20px 22px;
+      background: var(--glass-card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+    }
+
+    .speed-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+
+    .wpm-badge {
+      display: inline-flex;
+      align-items: baseline;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: 999px;
+      background: rgba(138, 43, 226, 0.16);
+      border: 1px solid rgba(177, 75, 244, 0.45);
+      box-shadow: 0 0 18px rgba(138, 43, 226, 0.25);
+    }
+    .wpm-badge strong {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 22px;
+      font-weight: 800;
+      color: #ffffff;
+      text-shadow: 0 0 12px rgba(0, 191, 255, 0.6);
+      font-variant-numeric: tabular-nums;
+    }
+    .wpm-badge span {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--cyan-neon);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    /* Кастомний повзунок (Range Slider) */
+    input[type="range"]#wpmSlider {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 8px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--cyan) 0%, var(--purple) 100%);
+      outline: none;
+      cursor: pointer;
+      box-shadow: 0 0 16px rgba(0, 191, 255, 0.25);
+    }
+    input[type="range"]#wpmSlider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: #ffffff;
+      border: 3px solid var(--cyan-neon);
+      box-shadow: 0 0 16px var(--cyan-neon), 0 0 28px var(--purple-neon);
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    input[type="range"]#wpmSlider::-webkit-slider-thumb:hover {
+      transform: scale(1.15);
+      box-shadow: 0 0 24px var(--cyan-neon), 0 0 40px var(--purple-neon);
+    }
+    input[type="range"]#wpmSlider::-moz-range-thumb {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: #ffffff;
+      border: 3px solid var(--cyan-neon);
+      box-shadow: 0 0 16px var(--cyan-neon), 0 0 28px var(--purple-neon);
+      cursor: pointer;
+      transition: transform 0.2s ease;
+    }
+
+    .speed-marks {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 10px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    /* Головна кнопка запуску */
+    .btn-launch {
+      margin-top: 24px;
+      width: 100%;
+      font-family: 'Montserrat', 'Inter', sans-serif;
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: 0.03em;
+      color: #050b14;
+      background: linear-gradient(115deg, var(--cyan-neon) 0%, var(--purple-neon) 55%, var(--emerald-neon) 100%);
+      background-size: 200% 100%;
+      border: none;
+      border-radius: 16px;
+      padding: 20px 28px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      box-shadow: 0 0 30px rgba(0, 191, 255, 0.45), 0 0 55px rgba(138, 43, 226, 0.3);
+      transition: transform 0.25s ease, box-shadow 0.3s ease, background-position 0.5s ease;
+    }
+    .btn-launch:hover {
+      transform: translateY(-3px);
+      background-position: 100% 0;
+      box-shadow: 0 0 44px rgba(0, 255, 255, 0.7), 0 0 75px rgba(177, 75, 244, 0.5);
+    }
+    .btn-launch:active {
+      transform: scale(0.98);
+    }
+    .btn-launch:focus-visible {
+      outline: 3px solid var(--cyan-neon);
+      outline-offset: 3px;
+    }
+
+    /* ============================================================
+       РЕЖИМ 2: «ТРАНСЛЯЦІЯ» (ПОВНОЕКРАННИЙ СУФЛЕР)
+       ============================================================ */
+    .broadcast-view {
+      position: fixed;
+      inset: 0;
+      z-index: 30;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 6vw;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition: opacity 0.5s ease, visibility 0.5s;
+    }
+
+    body.broadcasting .broadcast-view {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+    }
+
+    /* Верхній ненав'язливий HUD під час трансляції */
+    .broadcast-hud {
+      position: fixed;
+      top: 22px;
+      left: 24px;
+      right: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      opacity: 0.28;
+      transition: opacity 0.3s ease;
+    }
+    .broadcast-view:hover .broadcast-hud,
+    .broadcast-hud:focus-within,
+    body.paused .broadcast-hud {
+      opacity: 1;
+    }
+
+    .hud-keys {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      font-size: 13px;
+      color: var(--text-secondary);
+      background: rgba(15, 23, 42, 0.55);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--border);
+      padding: 8px 16px;
+      border-radius: 999px;
+    }
+    .hud-keys kbd {
+      font-family: inherit;
+      font-size: 11.5px;
+      font-weight: 700;
+      color: var(--cyan-neon);
+      background: rgba(0, 191, 255, 0.14);
+      border: 1px solid rgba(0, 255, 255, 0.3);
+      padding: 2px 8px;
+      border-radius: 6px;
+      margin-right: 4px;
+    }
+
+    .hud-controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .hud-btn {
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      background: rgba(15, 23, 42, 0.65);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 8px 16px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.25s ease;
+    }
+    .hud-btn:hover {
+      border-color: var(--cyan-neon);
+      color: #ffffff;
+      box-shadow: 0 0 18px rgba(0, 255, 255, 0.35);
+    }
+
+    /* Центральна сцена для показу фрази */
+    .stage-center {
+      width: 100%;
+      max-width: 1240px;
+      text-align: center;
+      cursor: pointer;
+      padding: 24px;
+    }
+
+    /* Кінематографічний текст суфлера */
+    .beam-phrase {
+      font-family: 'Montserrat', 'Inter', sans-serif;
+      font-size: clamp(32px, 5.8vw, 76px);
+      font-weight: 800;
+      line-height: 1.22;
+      letter-spacing: -0.015em;
+      color: #ffffff;
+      text-shadow:
+        0 0 28px rgba(0, 191, 255, 0.65),
+        0 0 64px rgba(138, 43, 226, 0.4);
+      overflow-wrap: break-word;
+      word-break: break-word;
+      hyphens: auto;
+      opacity: 0;
+      transform: scale(0.95) translateY(8px);
+      will-change: opacity, transform;
+    }
+
+    /* Індикатор паузи */
+    .pause-pill {
+      margin-top: 28px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 18px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--cyan-neon);
+      background: rgba(0, 191, 255, 0.12);
+      border: 1px solid rgba(0, 255, 255, 0.35);
+      box-shadow: 0 0 22px rgba(0, 191, 255, 0.25);
+      opacity: 0;
+      transform: translateY(6px);
+      transition: opacity 0.3s ease, transform 0.3s ease;
+      pointer-events: none;
+    }
+    body.paused .pause-pill {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Нижня тонка неонова лінія прогресу (0 - 100%) */
+    .progress-track {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 5px;
+      background: rgba(255, 255, 255, 0.07);
+      z-index: 40;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--purple) 0%, var(--cyan-neon) 60%, var(--emerald-neon) 100%);
+      box-shadow: 0 0 18px var(--cyan-neon), 0 0 32px var(--purple);
+      transition: width 0.12s linear;
+    }
+
+    /* Toast-сповіщення */
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 28px;
+      transform: translate(-50%, 24px);
+      z-index: 50;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 22px;
+      border-radius: 999px;
+      font-size: 14px;
+      font-weight: 600;
+      color: #fbbf24;
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(251, 191, 36, 0.45);
+      box-shadow: 0 0 24px rgba(251, 191, 36, 0.25), var(--shadow);
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.3s ease;
+    }
+    .toast.show {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
+
+    /* ===== Адаптивність ===== */
+    @media (max-width: 640px) {
+      .command-center {
+        padding: 18px 12px 34px;
+      }
+      .glass-panel {
+        padding: 20px 16px;
+      }
+      .hud-keys {
+        display: none;
+      }
+      .broadcast-hud {
+        opacity: 0.85;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Фоновий космічний Canvas -->
+  <canvas id="starCanvas" aria-hidden="true"></canvas>
+
+  <!-- ============================================================
+       РЕЖИМ 1: «КОМАНДНИЙ ПУНКТ» (НАЛАШТУВАННЯ)
+       ============================================================ -->
+  <main class="command-center" id="commandCenter">
+
+    <nav class="top-nav" aria-label="Навігація платформи">
+      <a class="back-hub" href="../index.html">
+        <i class="fa-solid fa-arrow-left"></i>
+        <span>← Назад до Хабу</span>
+      </a>
+    </nav>
+
+    <header>
+      <div class="badge"><i class="fa-solid fa-wand-magic-sparkles"></i> EduNova · Управління увагою</div>
+      <h1>Фокус-Промінь (Телесуфлер)</h1>
+      <p class="subtitle">Синхронізуйте увагу класу: текст подається осмисленими фразами по центру екрана у вибраному темпі читання.</p>
+    </header>
+
+    <section class="glass-panel" aria-label="Налаштування телесуфлера">
+      <div class="panel-toolbar">
+        <label class="field-label" for="sourceText">
+          <i class="fa-solid fa-align-left"></i>
+          <span>Текст для трансляції</span>
+        </label>
+        <div class="toolbar-actions">
+          <button type="button" class="btn-mini" id="sampleBtn">
+            <i class="fa-solid fa-Auto-sparkles fa-wand-sparkles"></i>
+            <span>Приклад тексту</span>
+          </button>
+          <button type="button" class="btn-mini" id="clearBtn">
+            <i class="fa-regular fa-trash-can"></i>
+            <span>Очистити</span>
+          </button>
+        </div>
+      </div>
+
+      <textarea
+        id="sourceText"
+        placeholder="Вставте або введіть сюди текст для читання з класом. Інструмент автоматично розіб'є його на логічні фрази по 3–5 слів з урахуванням розділових знаків…"
+      ></textarea>
+
+      <div class="text-stats">
+        <span id="statsWords">Слів: <b>0</b> · Фраз: <b>0</b></span>
+        <span id="statsTime">Орієнтовний час: <b>0 хв 00 с</b></span>
+      </div>
+
+      <!-- Повзунок швидкості WPM -->
+      <div class="speed-card">
+        <div class="speed-head">
+          <div>
+            <label class="field-label" for="wpmSlider">
+              <i class="fa-solid fa-gauge-high"></i>
+              <span>Швидкість читання (WPM)</span>
+            </label>
+            <div style="font-size: 12.5px; color: var(--muted); margin-top: 4px;" id="speedDesc">
+              Оптимальний темп · Середня школа
+            </div>
+          </div>
+          <div class="wpm-badge">
+            <strong id="wpmValue">140</strong>
+            <span>слів / хв</span>
+          </div>
+        </div>
+
+        <input
+          type="range"
+          id="wpmSlider"
+          min="60"
+          max="300"
+          step="5"
+          value="140"
+        >
+
+        <div class="speed-marks">
+          <span>60 WPM (Повільно)</span>
+          <span>120 WPM</span>
+          <span>180 WPM (Середньо)</span>
+          <span>240 WPM</span>
+          <span>300 WPM (Швидко)</span>
+        </div>
+      </div>
+
+      <button type="button" class="btn-launch" id="launchBtn">
+        <i class="fa-solid fa-bolt"></i>
+        <span>Запустити Фокус-Промінь</span>
+      </button>
+    </section>
+  </main>
+
+  <!-- ============================================================
+       РЕЖИМ 2: «ТРАНСЛЯЦІЯ» (ПОВНОЕКРАННИЙ СУФЛЕР)
+       ============================================================ -->
+  <section class="broadcast-view" id="broadcastView" aria-live="polite" aria-label="Повноекранний суфлер">
+
+    <!-- Верхня панель підказок та керування -->
+    <div class="broadcast-hud">
+      <div class="hud-keys">
+        <span><kbd>Пробіл</kbd> Пауза / Старт</span>
+        <span><kbd>←</kbd> <kbd>→</kbd> Фраза</span>
+        <span><kbd>Esc</kbd> Вихід</span>
+      </div>
+      <div class="hud-controls">
+        <button type="button" class="hud-btn" id="pauseBtn">
+          <i class="fa-solid fa-pause"></i>
+          <span>Пауза</span>
+        </button>
+        <button type="button" class="hud-btn" id="exitBtn">
+          <i class="fa-solid fa-xmark"></i>
+          <span>Завершити</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Центральна сцена, де з'являються фрази -->
+    <div class="stage-center" id="stageCenter" title="Натисніть або використайте Пробіл для паузи">
+      <div class="beam-phrase" id="beamPhrase"></div>
+      <div class="pause-pill" id="pausePill">
+        <i class="fa-solid fa-pause"></i>
+        <span>Трансляцію призупинено</span>
+      </div>
+    </div>
+
+    <!-- Неонова лінія прогресу внизу екрана -->
+    <div class="progress-track" aria-hidden="true">
+      <div class="progress-fill" id="progressFill"></div>
+    </div>
+  </section>
+
+  <!-- Сповіщення -->
+  <div class="toast" id="toast" role="status">
+    <i class="fa-solid fa-triangle-exclamation"></i>
+    <span id="toastMsg">Введіть текст для запуску</span>
+  </div>
+
+  <script>
+    /* ============================================================
+       МОДУЛЬ «ФОКУС-ПРОМІНЬ (ТЕЛЕСУФЛЕР)»
+       ============================================================ */
+
+    const STORAGE_TEXT_KEY = 'eduNova_focusBeam_text_v1';
+    const STORAGE_WPM_KEY  = 'eduNova_focusBeam_wpm_v1';
+
+    // Приклад тексту для швидкого тестування вчителем
+    const SAMPLE_TEXT =
+      `Всесвіт приховує безліч дивовижних таємниць. Щоразу, коли ми дивимося на нічне зоряне небо, ми бачимо світло далеких світил, яке летіло до Землі сотні й тисячі років.\n\n` +
+      `Світло рухається з неймовірною швидкістю — майже триста тисяч кілометрів за секунду. Проте навіть йому потрібні роки, щоб подолати міжзоряний простір.\n\n` +
+      `Сьогодні на уроці ми дослідимо, як народжуються зорі, чому вони світяться різними кольорами та як гравітація утримує планети на своїх орбітах.`;
+
+    /* ============================================================
+       DOM-ЕЛЕМЕНТИ
+       ============================================================ */
+    const $ = id => document.getElementById(id);
+    const sourceText   = $('sourceText');
+    const wpmSlider    = $('wpmSlider');
+    const wpmValue     = $('wpmValue');
+    const speedDesc    = $('speedDesc');
+    const statsWords   = $('statsWords');
+    const statsTime    = $('statsTime');
+    const sampleBtn    = $('sampleBtn');
+    const clearBtn     = $('clearBtn');
+    const launchBtn    = $('launchBtn');
+
+    const broadcastView = $('broadcastView');
+    const stageCenter   = $('stageCenter');
+    const beamPhrase    = $('beamPhrase');
+    const pauseBtn      = $('pauseBtn');
+    const exitBtn       = $('exitBtn');
+    const progressFill  = $('progressFill');
+    const toastEl       = $('toast');
+    const toastMsg      = $('toastMsg');
+
+    /* ============================================================
+       СТАН ДОДАТКУ
+       ============================================================ */
+    const state = {
+      active: false,       // чи активний режим «Трансляція»
+      paused: false,       // чи стоїть показ на паузі
+      phrases: [],         // масив об'єктів { text, words, durationMs }
+      currentIndex: 0,     // індекс поточної фрази
+      elapsedInPhrase: 0,  // скільки мс вже триває показ поточної фрази
+      lastTimestamp: 0,    // час попереднього кадру requestAnimationFrame
+      rafId: null
+    };
+
+    /* ============================================================
+       1. ІНТЕЛЕКТУАЛЬНИЙ ПАРСИНГ ТЕКСТУ НА ЛОГІЧНІ ФРАЗИ
+       Розбиває текст на осмислені порції по 3–5 слів або до знаків
+       пунктуації, ігноруючи порожні рядки.
+       ============================================================ */
+    function parseTextIntoPhrases(rawText, wpm) {
+      if (!rawText || !rawText.trim()) return [];
+
+      // Розділяємо на абзаци, ігноруючи порожні рядки
+      const paragraphs = rawText
+        .split(/\r?\n+/)
+        .map(p => p.trim())
+        .filter(Boolean);
+
+      const rawChunks = [];
+
+      // Регулярний вираз для кінця синтаксичної думки (кома, крапка, тире, двокрапка тощо)
+      const strongBreak = /[.!?;:…]$/;
+      const softBreak   = /[,—–)]$/;
+
+      for (const para of paragraphs) {
+        const words = para.split(/\s+/).filter(Boolean);
+        let bucket = [];
+
+        for (let i = 0; i < words.length; i++) {
+          const word = words[i];
+          bucket.push(word);
+
+          const isLastWordInPara = (i === words.length - 1);
+          const remainingInPara  = words.length - 1 - i;
+          const count            = bucket.length;
+
+          // Якщо слово завершує речення — завжди закриваємо фразу
+          if (strongBreak.test(word)) {
+            rawChunks.push(bucket.join(' '));
+            bucket = [];
+            continue;
+          }
+
+          // Якщо є кома/тире і вже накопичено принаймні 2 слова — закриваємо фразу
+          if (softBreak.test(word) && count >= 2) {
+            rawChunks.push(bucket.join(' '));
+            bucket = [];
+            continue;
+          }
+
+          // Цільовий розмір фрази: 3–5 слів.
+          // Якщо залишилося лише 1 слово до кінця речення/абзацу, приєднуємо його, щоб не було «сиріт» по 1 слову.
+          if (count >= 4 && remainingInPara !== 1) {
+            rawChunks.push(bucket.join(' '));
+            bucket = [];
+          } else if (count >= 5) {
+            rawChunks.push(bucket.join(' '));
+            bucket = [];
+          } else if (isLastWordInPara && bucket.length > 0) {
+            rawChunks.push(bucket.join(' '));
+            bucket = [];
+          }
+        }
+      }
+
+      // Розраховуємо тривалість показу кожного блоку на основі WPM
+      const msPerWord = 60000 / Math.max(60, wpm);
+
+      return rawChunks.map(chunk => {
+        const wordList = chunk.split(/\s+/).filter(Boolean);
+        const wordCount = wordList.length;
+
+        // Враховуємо також довжину символів для складних довгих слів
+        const charFactor = Math.max(wordCount, chunk.length / 6.2);
+        let durationMs = charFactor * msPerWord;
+
+        // Додаткова мікро-пауза наприкінці речення для природного сприйняття
+        if (strongBreak.test(chunk)) {
+          durationMs += Math.min(450, msPerWord * 0.65);
+        } else if (softBreak.test(chunk)) {
+          durationMs += Math.min(220, msPerWord * 0.3);
+        }
+
+        // Мінімальний час утримання на екрані, щоб включати плавні fade-in / fade-out
+        durationMs = Math.max(950, Math.round(durationMs));
+
+        return {
+          text: chunk,
+          words: wordCount,
+          durationMs
+        };
+      });
+    }
+
+    /* ============================================================
+       2. ОНОВЛЕННЯ СТАТИСТИКИ ТА LOCALSTORAGE
+       ============================================================ */
+    function getSpeedDescription(wpm) {
+      if (wpm <= 100) return 'Повільний темп · Молодша школа або складні правила';
+      if (wpm <= 160) return 'Оптимальний темп · Комфортне читання вголос';
+      if (wpm <= 220) return 'Динамічний темп · Середня та старша школа';
+      return 'Інтенсивний темп · Швидкочитання та концентрація';
+    }
+
+    function updateSettingsUI() {
+      const wpm = Number(wpmSlider.value);
+      wpmValue.textContent = wpm;
+      speedDesc.textContent = getSpeedDescription(wpm);
+
+      const text = sourceText.value;
+      const phrases = parseTextIntoPhrases(text, wpm);
+      const totalWords = phrases.reduce((acc, p) => acc + p.words, 0);
+      const totalMs = phrases.reduce((acc, p) => acc + p.durationMs, 0);
+      const totalSec = Math.ceil(totalMs / 1000);
+
+      statsWords.innerHTML = `Слів: <b>${totalWords}</b> · Фраз: <b>${phrases.length}</b>`;
+      statsTime.innerHTML  = `Орієнтовний час: <b>${Math.floor(totalSec / 60)} хв ${String(totalSec % 60).padStart(2, '0')} с</b>`;
+
+      // Зберігаємо в localStorage
+      try {
+        localStorage.setItem(STORAGE_TEXT_KEY, text);
+        localStorage.setItem(STORAGE_WPM_KEY, String(wpm));
+      } catch (e) {}
+    }
+
+    function loadSavedSettings() {
+      try {
+        const savedText = localStorage.getItem(STORAGE_TEXT_KEY);
+        const savedWpm  = localStorage.getItem(STORAGE_WPM_KEY);
+        if (savedText !== null && savedText.trim() !== '') {
+          sourceText.value = savedText;
+        } else {
+          sourceText.value = SAMPLE_TEXT;
+        }
+        if (savedWpm) {
+          const n = Number(savedWpm);
+          if (n >= 60 && n <= 300) wpmSlider.value = String(n);
+        }
+      } catch (e) {
+        sourceText.value = SAMPLE_TEXT;
+      }
+      updateSettingsUI();
+    }
+
+    /* ============================================================
+       3. КЕРУВАННЯ ТРАНСЛЯЦІЄЮ ТА КІНЕМАТОГРАФІЧНА АНІМАЦІЯ
+       ============================================================ */
+    let toastTimer = null;
+    function showToast(message) {
+      toastMsg.textContent = message;
+      toastEl.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toastEl.classList.remove('show'), 2600);
+    }
+
+    function startBroadcast() {
+      const wpm = Number(wpmSlider.value);
+      const phrases = parseTextIntoPhrases(sourceText.value, wpm);
+
+      if (!phrases.length) {
+        showToast('Спочатку введіть або вставте текст для трансляції');
+        sourceText.focus();
+        return;
+      }
+
+      state.phrases = phrases;
+      state.currentIndex = 0;
+      state.elapsedInPhrase = 0;
+      state.active = true;
+      state.paused = false;
+      state.lastTimestamp = 0;
+
+      document.body.classList.add('broadcasting');
+      document.body.classList.remove('paused');
+      syncPauseButton();
+
+      renderCurrentPhraseText();
+      cancelAnimationFrame(state.rafId);
+      state.rafId = requestAnimationFrame(broadcastLoop);
+    }
+
+    function stopBroadcast() {
+      state.active = false;
+      state.paused = false;
+      document.body.classList.remove('broadcasting', 'paused');
+      cancelAnimationFrame(state.rafId);
+    }
+
+    function togglePause() {
+      if (!state.active) return;
+      state.paused = !state.paused;
+      document.body.classList.toggle('paused', state.paused);
+      syncPauseButton();
+      if (!state.paused) {
+        state.lastTimestamp = performance.now();
+      }
+    }
+
+    function syncPauseButton() {
+      pauseBtn.innerHTML = state.paused
+        ? '<i class="fa-solid fa-play"></i><span>Продовжити</span>'
+        : '<i class="fa-solid fa-pause"></i><span>Пауза</span>';
+    }
+
+    function stepPhrase(delta) {
+      if (!state.active || !state.phrases.length) return;
+      const nextIdx = Math.max(0, Math.min(state.phrases.length - 1, state.currentIndex + delta));
+      state.currentIndex = nextIdx;
+      state.elapsedInPhrase = 0;
+      renderCurrentPhraseText();
+      applyCinematicStyle(0.5); // миттєво показуємо при ручному перемиканні
+      updateProgressBar();
+    }
+
+    function renderCurrentPhraseText() {
+      const current = state.phrases[state.currentIndex];
+      beamPhrase.textContent = current ? current.text : '';
+    }
+
+    /**
+     * Обчислює плавну кінематографічну появу (fade-in + scale 0.95 -> 1)
+     * та розчинення (fade-out) фрази в межах її часу показу.
+     */
+    function applyCinematicStyle(progress) {
+      const fadeInPortion  = 0.20; // перші 20% часу — плавна поява
+      const fadeOutPortion = 0.80; // останні 20% часу — плавне розчинення
+
+      let opacity = 1;
+      let scale = 1;
+      let translateY = 0;
+
+      if (progress < fadeInPortion) {
+        const t = progress / fadeInPortion;
+        const ease = 1 - Math.pow(1 - t, 3); // cubic ease-out
+        opacity = ease;
+        scale = 0.95 + 0.05 * ease;
+        translateY = (1 - ease) * 10;
+      } else if (progress > fadeOutPortion) {
+        const t = (progress - fadeOutPortion) / (1 - fadeOutPortion);
+        const ease = 1 - Math.pow(t, 2);
+        opacity = Math.max(0, ease);
+        scale = 1 + 0.025 * t;
+        translateY = -t * 6;
+      } else {
+        opacity = 1;
+        scale = 1;
+        translateY = 0;
+      }
+
+      beamPhrase.style.opacity = opacity.toFixed(3);
+      beamPhrase.style.transform = `scale(${scale.toFixed(4)}) translateY(${translateY.toFixed(1)}px)`;
+    }
+
+    function updateProgressBar() {
+      const total = state.phrases.length;
+      if (!total) {
+        progressFill.style.width = '0%';
+        return;
+      }
+      const current = state.phrases[state.currentIndex];
+      const phraseFraction = current ? Math.min(1, state.elapsedInPhrase / current.durationMs) : 0;
+      const overallPct = ((state.currentIndex + phraseFraction) / total) * 100;
+      progressFill.style.width = `${Math.min(100, overallPct).toFixed(2)}%`;
+    }
+
+    function broadcastLoop(ts) {
+      if (!state.active) return;
+
+      if (!state.lastTimestamp) state.lastTimestamp = ts;
+      const dt = Math.min(100, ts - state.lastTimestamp);
+      state.lastTimestamp = ts;
+
+      if (!state.paused) {
+        const current = state.phrases[state.currentIndex];
+        if (!current) {
+          stopBroadcast();
+          return;
+        }
+
+        state.elapsedInPhrase += dt;
+        const progress = Math.min(1, state.elapsedInPhrase / current.durationMs);
+
+        applyCinematicStyle(progress);
+        updateProgressBar();
+
+        // Перехід до наступної фрази
+        if (state.elapsedInPhrase >= current.durationMs) {
+          state.currentIndex++;
+          state.elapsedInPhrase = 0;
+
+          if (state.currentIndex >= state.phrases.length) {
+            // Завершення трансляції після останньої фрази
+            progressFill.style.width = '100%';
+            setTimeout(() => {
+              if (state.active) stopBroadcast();
+            }, 350);
+            return;
+          }
+
+          renderCurrentPhraseText();
+        }
+      }
+
+      state.rafId = requestAnimationFrame(broadcastLoop);
+    }
+
+    /* ============================================================
+       4. ФОНОВИЙ ЗОРЯНИЙ КОСМОС НА CANVAS
+       ============================================================ */
+    (function initStarfield() {
+      const cv = $('starCanvas');
+      const ctx = cv.getContext('2d');
+      let W = 0, H = 0, stars = [];
+
+      function resize() {
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        W = window.innerWidth;
+        H = window.innerHeight;
+        cv.width = W * dpr;
+        cv.height = H * dpr;
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+        const count = Math.min(150, Math.round((W * H) / 10000));
+        stars = Array.from({ length: count }, () => ({
+          x: Math.random() * W,
+          y: Math.random() * H,
+          r: 0.4 + Math.random() * 1.4,
+          phase: Math.random() * Math.PI * 2,
+          speed: 0.4 + Math.random() * 1.2,
+          vy: -0.08 - Math.random() * 0.18,
+          rgb: ['255,255,255', '0,191,255', '138,43,226'][Math.floor(Math.random() * 3)]
+        }));
+      }
+
+      function renderStars(ts) {
+        const t = ts / 1000;
+        ctx.clearRect(0, 0, W, H);
+
+        // Глибокий космічний фон із м'яким градієнтом
+        ctx.fillStyle = '#0B0F19';
+        ctx.fillRect(0, 0, W, H);
+
+        const g1 = ctx.createRadialGradient(W * 0.2, H * 0.2, 0, W * 0.2, H * 0.2, Math.max(W, H) * 0.5);
+        g1.addColorStop(0, state.active ? 'rgba(138, 43, 226, 0.06)' : 'rgba(138, 43, 226, 0.14)');
+        g1.addColorStop(1, 'rgba(138, 43, 226, 0)');
+        ctx.fillStyle = g1;
+        ctx.fillRect(0, 0, W, H);
+
+        const g2 = ctx.createRadialGradient(W * 0.8, H * 0.8, 0, W * 0.8, H * 0.8, Math.max(W, H) * 0.5);
+        g2.addColorStop(0, state.active ? 'rgba(0, 191, 255, 0.05)' : 'rgba(0, 191, 255, 0.11)');
+        g2.addColorStop(1, 'rgba(0, 191, 255, 0)');
+        ctx.fillStyle = g2;
+        ctx.fillRect(0, 0, W, H);
+
+        // Зорі (у режимі трансляції світяться делікатніше, щоб не відволікати від читання)
+        const dimFactor = state.active ? 0.55 : 1;
+        for (const s of stars) {
+          s.y += s.vy;
+          if (s.y < -4) s.y = H + 4;
+          const alpha = (0.2 + 0.55 * (0.5 + 0.5 * Math.sin(t * s.speed + s.phase))) * dimFactor;
+          ctx.fillStyle = `rgba(${s.rgb}, ${alpha.toFixed(3)})`;
+          ctx.beginPath();
+          ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        requestAnimationFrame(renderStars);
+      }
+
+      window.addEventListener('resize', resize);
+      resize();
+      requestAnimationFrame(renderStars);
+    })();
+
+    /* ============================================================
+       5. ОБРОБНИКИ ПОДІЙ
+       ============================================================ */
+    sourceText.addEventListener('input', updateSettingsUI);
+    wpmSlider.addEventListener('input', updateSettingsUI);
+
+    sampleBtn.addEventListener('click', () => {
+      sourceText.value = SAMPLE_TEXT;
+      updateSettingsUI();
+    });
+
+    clearBtn.addEventListener('click', () => {
+      sourceText.value = '';
+      updateSettingsUI();
+      sourceText.focus();
+    });
+
+    launchBtn.addEventListener('click', startBroadcast);
+    pauseBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      togglePause();
+    });
+    exitBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      stopBroadcast();
+    });
+    stageCenter.addEventListener('click', togglePause);
+
+    // Гарячі клавіші в режимі трансляції: Пробіл — пауза/старт, Escape — вихід, Стрілки — навігація
+    document.addEventListener('keydown', e => {
+      if (!state.active) return;
+
+      if (e.code === 'Space') {
+        e.preventDefault();
+        togglePause();
+      } else if (e.code === 'Escape') {
+        e.preventDefault();
+        stopBroadcast();
+      } else if (e.code === 'ArrowRight') {
+        e.preventDefault();
+        stepPhrase(1);
+      } else if (e.code === 'ArrowLeft') {
+        e.preventDefault();
+        stepPhrase(-1);
+      }
+    });
+
+    // Ініціалізація при завантаженні
+    loadSavedSettings();
+  </script>
+</body>
+</html>

@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Квантовий Пульсар · Космічний рандомайзер · EduNova</title>
+  <meta name="theme-color" content="#050b14">
+  <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
+
+  <!-- Шрифт Inter та іконки FontAwesome -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <style>
+    /* ============================================================
+       EDUNOVA DESIGN SYSTEM — ЗМІННІ ТЕМИ
+       ============================================================ */
+    :root {
+      --space: #050b14;
+      --cyan: #00ffff;
+      --purple: #b14bf4;
+      --emerald: #00ff80;
+      --text: #F3F4F6;
+      --text-secondary: #D1D5DB;
+      --muted: #8d97b5;
+      --glass: rgba(15, 23, 42, 0.5);
+      --glass-input: rgba(10, 15, 30, 0.65);
+      --border: rgba(255, 255, 255, 0.1);
+      --radius: 16px;
+      --shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body { height: 100%; overflow: hidden; }
+
+    body {
+      font-family: 'Inter', 'Roboto', sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(900px 600px at 20% 25%, rgba(177, 75, 244, 0.14), transparent 60%),
+        radial-gradient(800px 600px at 75% 80%, rgba(0, 255, 255, 0.10), transparent 60%),
+        var(--space);
+    }
+
+    /* ===== Навігація: Кнопка «Назад до Хабу» у лівому верхньому куті ===== */
+    .back-hub {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      z-index: 25;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 18px;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      text-decoration: none;
+      background: var(--glass);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      box-shadow: var(--shadow);
+      transition: all 0.3s ease;
+    }
+    .back-hub i {
+      color: var(--cyan);
+      transition: transform 0.3s ease;
+    }
+    .back-hub:hover, .back-hub:focus-visible {
+      border-color: var(--cyan);
+      color: #ffffff;
+      box-shadow: 0 0 20px rgba(0, 255, 255, 0.38), var(--shadow);
+      transform: translateY(-2px);
+      outline: none;
+    }
+    .back-hub:hover i {
+      transform: translateX(-4px);
+    }
+
+    /* ===== Шар 1: Canvas на весь екран ===== */
+    #space { position: fixed; inset: 0; width: 100vw; height: 100vh; display: block; }
+
+    /* ===== Шар 2: бічна панель (Glassmorphism) ===== */
+    .panel {
+      position: fixed; top: 20px; right: 20px; bottom: 20px; width: 360px;
+      display: flex; flex-direction: column; gap: 16px;
+      padding: 24px;
+      background: var(--glass);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      z-index: 10;
+    }
+
+    .title { display: flex; align-items: center; gap: 12px; }
+    .title i { font-size: 22px; color: var(--cyan); text-shadow: 0 0 14px var(--cyan); }
+    h1 {
+      font-size: 20px; font-weight: 700; letter-spacing: .02em; color: #ffffff;
+      text-shadow: 0 0 18px rgba(0, 255, 255, 0.55), 0 0 32px rgba(177, 75, 244, 0.3);
+    }
+    .subtitle { font-size: 13px; color: var(--text-secondary); margin-top: -8px; }
+
+    label {
+      display: block; font-size: 11px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase;
+      color: var(--text-secondary); margin-bottom: 8px;
+    }
+
+    select, textarea {
+      width: 100%; font-family: inherit; font-size: 15px; color: var(--text);
+      background-color: var(--glass-input);
+      border: 1px solid rgba(255, 255, 255, 0.16); border-radius: 14px; padding: 12px 14px; outline: none;
+      transition: border-color .25s ease, box-shadow .25s ease;
+    }
+    select {
+      appearance: none; -webkit-appearance: none; cursor: pointer; padding-right: 40px;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2300ffff' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 14px center;
+    }
+    select option { background: #0a1122; color: var(--text); }
+    select:hover, textarea:hover { border-color: rgba(0, 255, 255, 0.4); }
+    select:focus, textarea:focus {
+      border-color: var(--cyan);
+      box-shadow: 0 0 0 3px rgba(0, 255, 255, 0.2), 0 0 18px rgba(0, 255, 255, 0.28);
+    }
+
+    .field-grow { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+    textarea { flex: 1; resize: none; line-height: 1.7; min-height: 120px; }
+    textarea::placeholder { color: var(--muted); }
+    .count { font-size: 12px; color: var(--text-secondary); margin-top: 8px; }
+
+    /* ===== Кнопки ===== */
+    .btn {
+      font-family: inherit; font-weight: 600; cursor: pointer; border: none; border-radius: 14px;
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      transition: transform .2s ease, box-shadow .25s ease, opacity .25s ease, background .25s ease, border-color .25s ease;
+    }
+    .btn:hover:not(:disabled) { transform: translateY(-2px); }
+    .btn:active:not(:disabled) { transform: scale(.97); }
+    .btn:focus-visible { outline: 2px solid var(--cyan); outline-offset: 3px; }
+    .btn:disabled { opacity: .55; cursor: not-allowed; }
+
+    .btn-save {
+      font-size: 14px; padding: 12px; color: var(--text);
+      background: rgba(15, 23, 42, 0.65); border: 1px solid rgba(255, 255, 255, 0.16);
+    }
+    .btn-save:hover:not(:disabled) {
+      background: rgba(0, 255, 255, 0.12);
+      border-color: var(--cyan);
+      box-shadow: 0 0 16px rgba(0, 255, 255, 0.25);
+    }
+
+    .btn-launch {
+      font-size: 16px; font-weight: 700; padding: 17px; color: #050b14; letter-spacing: .03em;
+      background: linear-gradient(120deg, var(--cyan), var(--purple) 55%, var(--emerald));
+      background-size: 200% 100%;
+      box-shadow: 0 0 28px rgba(0, 255, 255, 0.4), 0 0 50px rgba(177, 75, 244, 0.3);
+      animation: shimmer 5s linear infinite;
+    }
+    .btn-launch:hover:not(:disabled) {
+      box-shadow: 0 0 40px rgba(0, 255, 255, 0.65), 0 0 70px rgba(177, 75, 244, 0.45);
+    }
+    @keyframes shimmer { 0% { background-position: 0 0; } 100% { background-position: 200% 0; } }
+
+    /* ===== Toast ===== */
+    .toast {
+      position: fixed; left: 50%; top: 24px; z-index: 40;
+      display: flex; align-items: center; gap: 10px;
+      padding: 12px 22px; border-radius: 999px; font-size: 14px; font-weight: 500;
+      background: var(--glass); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--emerald); color: var(--emerald);
+      box-shadow: 0 0 24px rgba(0, 255, 128, 0.3), var(--shadow);
+      transform: translate(-50%, -30px); opacity: 0; pointer-events: none;
+      transition: transform .4s cubic-bezier(.2, .9, .3, 1.2), opacity .3s ease;
+    }
+    .toast.show { transform: translate(-50%, 0); opacity: 1; }
+    .toast.warn { border-color: #fbbf24; color: #fbbf24; box-shadow: 0 0 24px rgba(251, 191, 36, 0.3), var(--shadow); }
+
+    /* ===== Шар 3: модальне вікно результату ===== */
+    .modal-backdrop {
+      position: fixed; inset: 0; z-index: 30; display: grid; place-items: center; padding: 20px;
+      background: rgba(5, 11, 20, 0.65); backdrop-filter: blur(6px);
+      opacity: 0; visibility: hidden; transition: opacity .6s ease, visibility .6s;
+    }
+    .modal-backdrop.show { opacity: 1; visibility: visible; }
+
+    .modal {
+      width: min(560px, 100%); text-align: center; padding: 40px 36px 34px;
+      background: var(--glass);
+      backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--cyan); border-radius: var(--radius);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), 0 0 50px rgba(0, 255, 255, 0.3), 0 0 100px rgba(177, 75, 244, 0.2);
+      transform: scale(.85) translateY(20px); transition: transform .6s cubic-bezier(.2, .9, .3, 1.15);
+    }
+    .modal-backdrop.show .modal { transform: scale(1) translateY(0); }
+
+    .modal-kicker {
+      font-size: 13px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase;
+      color: var(--purple); text-shadow: 0 0 14px rgba(177, 75, 244, 0.5); margin-bottom: 18px;
+    }
+    .modal-result {
+      font-size: clamp(30px, 6vw, 52px); font-weight: 800; line-height: 1.15; word-break: break-word; color: #ffffff;
+      text-shadow: 0 0 26px rgba(0, 255, 255, 0.75), 0 0 48px rgba(177, 75, 244, 0.35); margin-bottom: 30px;
+    }
+    .btn-continue {
+      margin: 0 auto; font-size: 16px; font-weight: 700; padding: 14px 36px; color: #050b14;
+      background: linear-gradient(120deg, var(--cyan), var(--emerald));
+      box-shadow: 0 0 24px rgba(0, 255, 255, 0.45);
+    }
+
+    /* ===== Адаптивність: на вузьких екранах панель опускається вниз ===== */
+    @media (max-width: 820px) {
+      .back-hub { top: 12px; left: 12px; padding: 8px 14px; font-size: 13px; }
+      .panel { top: auto; left: 12px; right: 12px; bottom: 12px; width: auto; max-height: 52vh; padding: 18px; gap: 12px; }
+      .subtitle { display: none; }
+      textarea { min-height: 70px; }
+    }
+    @media (prefers-reduced-motion: reduce) { .btn-launch { animation: none; } }
+  </style>
+</head>
+<body>
+
+  <!-- Навігація назад до Хабу -->
+  <a class="back-hub" href="../index.html" aria-label="Назад до Хабу">
+    <i class="fa-solid fa-arrow-left"></i>
+    <span>← Назад до Хабу</span>
+  </a>
+
+  <!-- Шар 1: фон -->
+  <canvas id="space" aria-hidden="true"></canvas>
+
+  <!-- Шар 2: панель керування -->
+  <aside class="panel" id="panel" aria-label="Панель керування">
+    <div class="title"><i class="fa-solid fa-atom"></i><h1>Квантовий Пульсар</h1></div>
+    <p class="subtitle">Космічний радар випадкового вибору зі списку</p>
+
+    <div>
+      <label for="category">Категорія</label>
+      <select id="category">
+        <option value="students">Учні</option>
+        <option value="terms">Терміни</option>
+        <option value="anomalies">Космічні аномалії</option>
+      </select>
+    </div>
+
+    <div class="field-grow">
+      <label for="items">Список (кожен елемент — з нового рядка)</label>
+      <textarea id="items" spellcheck="false" placeholder="Введіть елементи списку…"></textarea>
+      <div class="count" id="count">Елементів: 0</div>
+    </div>
+
+    <button class="btn btn-save" id="saveBtn" type="button"><i class="fa-regular fa-floppy-disk"></i> Зберегти список</button>
+    <button class="btn btn-launch" id="launchBtn" type="button"><i class="fa-solid fa-satellite-dish"></i> Запустити Радар</button>
+  </aside>
+
+  <!-- Toast -->
+  <div class="toast" id="toast" role="status" aria-live="polite"><i class="fa-solid fa-circle-check"></i><span id="toastText">Збережено</span></div>
+
+  <!-- Шар 3: модальне вікно -->
+  <div class="modal-backdrop" id="modalBackdrop">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalKicker">
+      <div class="modal-kicker" id="modalKicker">Вибрано учня:</div>
+      <div class="modal-result" id="modalResult">—</div>
+      <button class="btn btn-continue" id="continueBtn" type="button"><i class="fa-solid fa-forward"></i> Продовжити</button>
+    </div>
+  </div>
+
+  <script>
+    /* ============================================================
+       КОНФІГУРАЦІЯ
+       ============================================================ */
+    const STORAGE_KEY = 'spaceRadar_lists_v1';
+    const CATEGORY_KEY = 'spaceRadar_category_v1';
+
+    // Початкові списки (використовуються, поки вчитель нічого не зберіг)
+    const DEFAULT_LISTS = {
+      students:  'Олена\nМаксим\nСофія\nАндрій\nДарина\nЯрослав',
+      terms:     'Фотосинтез\nГравітація\nАтом\nЕкосистема\nМолекула\nЕнергія',
+      anomalies: 'Чорна діра\nКвазар\nПульсар\nТемна матерія\nНаднова зоря\nЧервоточина'
+    };
+
+    // Заголовки модального вікна для кожної категорії
+    const MODAL_TITLES = {
+      students:  'Вибрано учня:',
+      terms:     'Вибрано термін:',
+      anomalies: 'Виявлено аномалію:'
+    };
+
+    const CFG = {
+      starDensity: 1 / 9500,      // зірок на піксель²
+      maxStars: 170,
+      linkDistance: 130,          // макс. відстань для лінії сузір'я, px
+      idleSpeed: 0.35,            // швидкість радара в очікуванні, рад/с
+      spinMin: 13, spinMax: 17,   // початкова швидкість обертання, рад/с
+      spinUpTime: 0.7,            // час розгону, с
+      friction: 1.25,             // коефіцієнт тертя (чим більше — тим швидше зупинка)
+      stopThreshold: 0.03,        // нижче цієї швидкості радар вважається зупиненим
+      modalDelay: 1000            // пауза перед показом результату, мс
+    };
+
+    /* ============================================================
+       DOM
+       ============================================================ */
+    const $ = id => document.getElementById(id);
+    const canvas = $('space'), ctx = canvas.getContext('2d');
+    const panel = $('panel'), categoryEl = $('category'), itemsEl = $('items'), countEl = $('count');
+    const saveBtn = $('saveBtn'), launchBtn = $('launchBtn'), continueBtn = $('continueBtn');
+    const toastEl = $('toast'), toastText = $('toastText');
+    const modalBackdrop = $('modalBackdrop'), modalKicker = $('modalKicker'), modalResult = $('modalResult');
+
+    /* ============================================================
+       СХОВИЩЕ (localStorage з безпечною обробкою помилок)
+       ============================================================ */
+    function loadLists() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) return Object.assign({}, DEFAULT_LISTS, JSON.parse(raw));
+      } catch (e) { /* сховище недоступне або пошкоджене */ }
+      return Object.assign({}, DEFAULT_LISTS);
+    }
+    function persistLists() {
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(lists)); return true; }
+      catch (e) { return false; }
+    }
+
+    let lists = loadLists();
+
+    // Підставляє збережений список обраної категорії в textarea
+    function showCategory() {
+      itemsEl.value = lists[categoryEl.value] || '';
+      updateCount();
+      try { localStorage.setItem(CATEGORY_KEY, categoryEl.value); } catch (e) {}
+    }
+
+    // Розбирає textarea на масив непорожніх рядків
+    function getItems() {
+      return itemsEl.value.split('\n').map(s => s.trim()).filter(Boolean);
+    }
+    function updateCount() { countEl.textContent = 'Елементів: ' + getItems().length; }
+
+    /* ============================================================
+       TOAST
+       ============================================================ */
+    let toastTimer;
+    function toast(text, warn = false) {
+      toastText.textContent = text;
+      toastEl.classList.toggle('warn', warn);
+      toastEl.querySelector('i').className = warn ? 'fa-solid fa-triangle-exclamation' : 'fa-solid fa-circle-check';
+      toastEl.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toastEl.classList.remove('show'), 2000);
+    }
+
+    /* ============================================================
+       CANVAS: розміри та розташування радара
+       ============================================================ */
+    let W = 0, H = 0, DPR = 1;
+    const radar = { cx: 0, cy: 0, r: 0 };
+
+    function resize() {
+      DPR = Math.min(window.devicePixelRatio || 1, 2);
+      W = window.innerWidth; H = window.innerHeight;
+      canvas.width = W * DPR; canvas.height = H * DPR;
+      ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+
+      // Радар центруємо у вільній від панелі області
+      const pr = panel.getBoundingClientRect();
+      let freeW = W, freeH = H, cx = W / 2, cy = H / 2;
+      if (W > 820) { freeW = W - pr.width - 40; cx = freeW / 2; }
+      else         { freeH = H - pr.height - 20; cy = freeH / 2; }
+      radar.cx = cx; radar.cy = cy;
+      radar.r = Math.max(80, Math.min(freeW, freeH) * 0.42);
+
+      syncStarCount();
+    }
+
+    /* ============================================================
+       ЗІРКИ
+       ============================================================ */
+    const STAR_COLORS = ['255,255,255', '0,255,255', '177,75,244', '0,255,128', '186,230,253'];
+    let stars = [];
+
+    function makeStar() {
+      const a = Math.random() * Math.PI * 2, sp = 4 + Math.random() * 10;
+      return {
+        x: Math.random() * W, y: Math.random() * H,
+        vx: Math.cos(a) * sp, vy: Math.sin(a) * sp,
+        r: 0.8 + Math.random() * 1.8,
+        color: STAR_COLORS[(Math.random() * STAR_COLORS.length) | 0],
+        phase: Math.random() * Math.PI * 2,          // фаза мерехтіння
+        lit: 0                                       // підсвітка від променя радара (0…1)
+      };
+    }
+
+    // Підлаштовує кількість зірок під розмір екрана
+    function syncStarCount() {
+      const target = Math.min(CFG.maxStars, Math.round(W * H * CFG.starDensity));
+      while (stars.length < target) stars.push(makeStar());
+      if (stars.length > target) {
+        stars.length = target;
+        if (state.chosen && !stars.includes(state.chosen)) state.chosen = null;
+      }
+    }
+
+    /* ============================================================
+       СТАН РАДАРА
+       Режими: idle → spinup → decay → locked → (закриття вікна) → idle
+       ============================================================ */
+    const state = {
+      mode: 'idle',
+      angle: -Math.PI / 2,
+      omega: CFG.idleSpeed,
+      omegaTarget: 0,
+      spinT: 0,
+      chosen: null,          // обрана зірка
+      chosenAmt: 0,          // плавна інтенсивність підсвітки (0…1)
+      pick: '',              // обраний рядок
+      time: 0
+    };
+
+    function launchRadar() {
+      if (state.mode !== 'idle') return;
+      const items = getItems();
+      if (!items.length) { toast('Додайте хоча б один елемент до списку', true); itemsEl.focus(); return; }
+
+      state.pick = items[(Math.random() * items.length) | 0];   // результат визначається випадково
+      state.omegaTarget = CFG.spinMin + Math.random() * (CFG.spinMax - CFG.spinMin);
+      state.spinT = 0;
+      state.mode = 'spinup';
+      state.chosen = null;
+      setBusy(true);
+    }
+
+    function setBusy(b) {
+      launchBtn.disabled = b; saveBtn.disabled = b; categoryEl.disabled = b; itemsEl.disabled = b;
+      launchBtn.innerHTML = b
+        ? '<i class="fa-solid fa-circle-notch fa-spin"></i> Сканування…'
+        : '<i class="fa-solid fa-satellite-dish"></i> Запустити Радар';
+    }
+
+    // Радар зупинився: підсвічуємо випадкову зірку та через паузу показуємо вікно
+    function onRadarStopped() {
+      state.mode = 'locked';
+      state.omega = 0;
+
+      // Віддаємо перевагу зіркам усередині радара, інакше — будь-яка
+      const inside = stars.filter(s => Math.hypot(s.x - radar.cx, s.y - radar.cy) < radar.r * 0.95);
+      const pool = inside.length ? inside : stars;
+      state.chosen = pool[(Math.random() * pool.length) | 0] || null;
+
+      setTimeout(showModal, CFG.modalDelay);
+    }
+
+    function showModal() {
+      modalKicker.textContent = MODAL_TITLES[categoryEl.value] || 'Результат:';
+      modalResult.textContent = state.pick;
+      modalBackdrop.classList.add('show');
+      continueBtn.focus();
+    }
+
+    function closeModal() {
+      if (!modalBackdrop.classList.contains('show')) return;
+      modalBackdrop.classList.remove('show');
+      state.mode = 'idle';
+      state.omega = CFG.idleSpeed;
+      state.chosen = null;                     // підсвітка плавно згасне
+      setBusy(false);
+    }
+
+    /* ============================================================
+       ОНОВЛЕННЯ ФІЗИКИ
+       ============================================================ */
+    const easeOut = t => 1 - Math.pow(1 - t, 3);
+
+    function update(dt) {
+      state.time += dt;
+
+      /* --- Радар --- */
+      if (state.mode === 'idle') {
+        state.omega = CFG.idleSpeed;
+      } else if (state.mode === 'spinup') {
+        state.spinT += dt;
+        const k = Math.min(1, state.spinT / CFG.spinUpTime);
+        state.omega = CFG.idleSpeed + (state.omegaTarget - CFG.idleSpeed) * easeOut(k);
+        if (k >= 1) state.mode = 'decay';
+      } else if (state.mode === 'decay') {
+        state.omega *= Math.exp(-CFG.friction * dt);          // тертя: експоненційне сповільнення
+        if (state.omega < CFG.stopThreshold) onRadarStopped();
+      }
+      state.angle = (state.angle + state.omega * dt) % (Math.PI * 2);
+
+      /* --- Зірки: повільний хаотичний рух --- */
+      const margin = 10;
+      for (const s of stars) {
+        s.vx += (Math.random() - 0.5) * 6 * dt;                // легке випадкове «блукання»
+        s.vy += (Math.random() - 0.5) * 6 * dt;
+        const sp = Math.hypot(s.vx, s.vy);
+        if (sp > 16) { s.vx *= 16 / sp; s.vy *= 16 / sp; }
+        if (sp < 3)  { s.vx *= 1.05;    s.vy *= 1.05; }
+
+        s.x += s.vx * dt; s.y += s.vy * dt;
+        if (s.x < -margin) s.x = W + margin; else if (s.x > W + margin) s.x = -margin;   // «загортання» країв
+        if (s.y < -margin) s.y = H + margin; else if (s.y > H + margin) s.y = -margin;
+
+        // Підсвітка зірок, повз які пройшов промінь радара
+        let target = 0;
+        const dx = s.x - radar.cx, dy = s.y - radar.cy;
+        if (dx * dx + dy * dy < radar.r * radar.r) {
+          let diff = state.angle - Math.atan2(dy, dx);            // наскільки промінь «випередив» зірку
+          diff = ((diff % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
+          if (diff < 1.1) target = 1 - diff / 1.1;
+        }
+        s.lit += (target - s.lit) * Math.min(1, dt * 8);
+      }
+
+      /* --- Інтенсивність підсвітки обраної зірки --- */
+      const want = state.chosen ? 1 : 0;
+      state.chosenAmt += (want - state.chosenAmt) * Math.min(1, dt * 3);
+      if (!state.chosen && state.chosenAmt < 0.01) state.chosenAmt = 0;
+    }
+
+    /* ============================================================
+       МАЛЮВАННЯ
+       ============================================================ */
+    let lastChosen = null;   // запам'ятовуємо зірку, поки згасає її підсвітка
+
+    function draw() {
+      ctx.clearRect(0, 0, W, H);
+      drawConstellations();
+      drawRadar();
+      drawStars();
+      drawChosen();
+    }
+
+    // Лінії між близькими зірками
+    function drawConstellations() {
+      const maxD = CFG.linkDistance, maxD2 = maxD * maxD;
+      ctx.lineWidth = 1;
+      for (let i = 0; i < stars.length; i++) {
+        const a = stars[i];
+        for (let j = i + 1; j < stars.length; j++) {
+          const b = stars[j];
+          const dx = a.x - b.x; if (dx > maxD || dx < -maxD) continue;   // швидке відсікання
+          const dy = a.y - b.y;
+          const d2 = dx * dx + dy * dy;
+          if (d2 < maxD2) {
+            const alpha = (1 - Math.sqrt(d2) / maxD) * 0.32 + (a.lit + b.lit) * 0.15;
+            ctx.strokeStyle = `rgba(0, 255, 255, ${alpha.toFixed(3)})`;
+            ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+          }
+        }
+      }
+    }
+
+    // Радар: кільця, перехрестя, сектор-«промінь»
+    function drawRadar() {
+      const { cx, cy, r } = radar;
+      const busy = state.mode !== 'idle';
+      const base = busy ? 0.30 : 0.16;
+
+      ctx.save();
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = `rgba(0, 255, 255, ${base})`;
+      for (let i = 1; i <= 4; i++) { ctx.beginPath(); ctx.arc(cx, cy, r * i / 4, 0, Math.PI * 2); ctx.stroke(); }
+
+      ctx.strokeStyle = `rgba(0, 255, 255, ${base * 0.7})`;
+      ctx.beginPath();
+      ctx.moveTo(cx - r, cy); ctx.lineTo(cx + r, cy);
+      ctx.moveTo(cx, cy - r); ctx.lineTo(cx, cy + r);
+      ctx.stroke();
+
+      // Хвіст променя: набір вузьких секторів зі спадною прозорістю
+      const N = 38, step = 0.022, boost = busy ? 1 : 0.6;
+      for (let i = 0; i < N; i++) {
+        const a1 = state.angle - i * step, a0 = a1 - step;
+        const alpha = Math.pow(1 - i / N, 2) * 0.34 * boost;
+        ctx.fillStyle = `rgba(0, 255, 255, ${alpha.toFixed(3)})`;
+        ctx.beginPath(); ctx.moveTo(cx, cy); ctx.arc(cx, cy, r, a0, a1 + 0.002); ctx.closePath(); ctx.fill();
+      }
+
+      // Яскрава передня лінія променя
+      ctx.strokeStyle = `rgba(0, 255, 128, ${0.55 + 0.35 * boost})`;
+      ctx.lineWidth = 2;
+      ctx.shadowColor = '#00ffff'; ctx.shadowBlur = 12;
+      ctx.beginPath(); ctx.moveTo(cx, cy);
+      ctx.lineTo(cx + Math.cos(state.angle) * r, cy + Math.sin(state.angle) * r); ctx.stroke();
+      ctx.restore();
+
+      // Центр
+      ctx.fillStyle = 'rgba(0, 255, 128, 0.9)';
+      ctx.beginPath(); ctx.arc(cx, cy, 3, 0, Math.PI * 2); ctx.fill();
+    }
+
+    // Звичайні зірки
+    function drawStars() {
+      const t = state.time;
+      for (const s of stars) {
+        const tw = 0.65 + 0.35 * Math.sin(t * 1.6 + s.phase);        // мерехтіння
+        const a = Math.min(1, tw * 0.75 + s.lit * 0.6);
+        if (s.lit > 0.05) {                                          // м'яке сяйво від променя
+          ctx.fillStyle = `rgba(${s.color}, ${(s.lit * 0.18).toFixed(3)})`;
+          ctx.beginPath(); ctx.arc(s.x, s.y, s.r + 5 * s.lit, 0, Math.PI * 2); ctx.fill();
+        }
+        ctx.fillStyle = `rgba(${s.color}, ${a.toFixed(3)})`;
+        ctx.beginPath(); ctx.arc(s.x, s.y, s.r * (1 + s.lit * 0.5), 0, Math.PI * 2); ctx.fill();
+      }
+    }
+
+    // Обрана зірка: пульсація, кільця та зв'язок із центром радара
+    function drawChosen() {
+      if (state.chosen) lastChosen = state.chosen;
+      const s = lastChosen;
+      if (!s || state.chosenAmt <= 0) { if (!state.chosen && state.chosenAmt === 0) lastChosen = null; return; }
+
+      const k = state.chosenAmt, t = state.time;
+      const pulse = 1 + 0.35 * Math.sin(t * 6);
+
+      // Пунктирна лінія від центру радара
+      ctx.save();
+      ctx.setLineDash([4, 8]);
+      ctx.strokeStyle = `rgba(0, 255, 128, ${0.35 * k})`;
+      ctx.beginPath(); ctx.moveTo(radar.cx, radar.cy); ctx.lineTo(s.x, s.y); ctx.stroke();
+      ctx.restore();
+
+      // Ореол
+      const R = 46 * pulse * k;
+      const g = ctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, R + 1);
+      g.addColorStop(0, `rgba(236, 254, 255, ${0.95 * k})`);
+      g.addColorStop(0.25, `rgba(0, 255, 128, ${0.55 * k})`);
+      g.addColorStop(1, 'rgba(0, 255, 255, 0)');
+      ctx.fillStyle = g;
+      ctx.beginPath(); ctx.arc(s.x, s.y, R + 1, 0, Math.PI * 2); ctx.fill();
+
+      // Розбіжні кільця
+      for (let i = 0; i < 2; i++) {
+        const p = ((t * 0.9 + i * 0.5) % 1);
+        ctx.strokeStyle = `rgba(0, 255, 128, ${(1 - p) * 0.7 * k})`;
+        ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.arc(s.x, s.y, 8 + p * 48, 0, Math.PI * 2); ctx.stroke();
+      }
+
+      // Ядро
+      ctx.fillStyle = `rgba(255, 255, 255, ${k})`;
+      ctx.beginPath(); ctx.arc(s.x, s.y, (s.r + 2.5) * pulse, 0, Math.PI * 2); ctx.fill();
+    }
+
+    /* ============================================================
+       ГОЛОВНИЙ ЦИКЛ (requestAnimationFrame)
+       ============================================================ */
+    let lastTs = 0;
+    function loop(ts) {
+      const dt = lastTs ? Math.min(0.05, (ts - lastTs) / 1000) : 0;   // обмежуємо dt після простою вкладки
+      lastTs = ts;
+      update(dt);
+      draw();
+      requestAnimationFrame(loop);
+    }
+
+    /* ============================================================
+       ПОДІЇ
+       ============================================================ */
+    categoryEl.addEventListener('change', showCategory);          // підставляємо збережений список
+    itemsEl.addEventListener('input', updateCount);
+
+    saveBtn.addEventListener('click', () => {
+      lists[categoryEl.value] = itemsEl.value;
+      if (persistLists()) toast('Збережено');
+      else toast('Не вдалося зберегти (сховище недоступне)', true);
+    });
+
+    launchBtn.addEventListener('click', launchRadar);
+    continueBtn.addEventListener('click', closeModal);
+    modalBackdrop.addEventListener('click', e => { if (e.target === modalBackdrop) closeModal(); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+    window.addEventListener('resize', resize);
+
+    /* ============================================================
+       ІНІЦІАЛІЗАЦІЯ
+       ============================================================ */
+    try {
+      const savedCat = localStorage.getItem(CATEGORY_KEY);
+      if (savedCat && lists[savedCat] !== undefined) categoryEl.value = savedCat;
+    } catch (e) {}
+    showCategory();
+    resize();
+    requestAnimationFrame(loop);
+  </script>
+</body>
+</html>
